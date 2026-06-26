@@ -5,6 +5,8 @@ import { storageService } from '../services/storage';
 import { avatarService } from '../services/avatar';
 import OllamaService from '../services/ollama';
 import DeepSeekService from '../services/deepseek';
+import GroqService from '../services/groq';
+import GeminiService from '../services/gemini';
 import { CEOServiceInstance } from '../services/ceo';
 import jsPDF from 'jspdf';
 import { Send, ArrowLeft, Download, FileText, Save, Loader2, Users, Crown } from 'lucide-react';
@@ -42,7 +44,11 @@ export const TeamChat: React.FC<TeamChatProps> = ({
   const [executiveReport, setExecutiveReport] = useState('');
 
   const selectedAgent = agents.find((a) => a.id === selectedAgentId);
-  const agentContexts = storageService.getAgentContexts();
+  const [agentContexts, setAgentContexts] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    storageService.getAgentContexts().then(setAgentContexts);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -72,21 +78,11 @@ You are ${selectedAgent.name} from the ${selectedAgent.division} division at YEO
 Provide expert, detailed analysis and recommendations. Be professional and thorough.`;
 
       let response: string;
-      if (provider === 'ollama') {
-        response = await OllamaService.generate({
-          model,
-          prompt: inputValue,
-          system: systemPrompt,
-          temperature: 0.7,
-        });
-      } else {
-        response = await DeepSeekService.generate({
-          model,
-          prompt: inputValue,
-          system: systemPrompt,
-          temperature: 0.7,
-        });
-      }
+      const genOpts = { model, prompt: inputValue, system: systemPrompt, temperature: 0.7 };
+      if (provider === 'ollama') response = await OllamaService.generate(genOpts);
+      else if (provider === 'groq') response = await GroqService.generate(genOpts);
+      else if (provider === 'gemini') response = await GeminiService.generate(genOpts);
+      else response = await DeepSeekService.generate(genOpts);
 
       const assistantMsg: ChatMessage = {
         id: Date.now().toString(),
@@ -209,7 +205,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
             className="bg-transparent text-white font-bold text-lg focus:outline-none focus:border-b focus:border-purple-500 w-96"
           />
           <p className="text-xs text-gray-500">
-            {agents.length} agents · {provider === 'deepseek' ? '☁️ DeepSeek' : '🖥️ Ollama'} · {model}
+            {agents.length} agents · {provider === 'groq' ? '⚡ Groq' : provider === 'gemini' ? '🌐 Gemini' : provider === 'deepseek' ? '☁️ DeepSeek' : '🖥️ Ollama'} · {model}
           </p>
         </div>
         <div className="flex gap-2">

@@ -7,6 +7,8 @@ import { TeamChat } from './components/TeamChat';
 import { Projects } from './components/Projects';
 import OllamaService from './services/ollama';
 import DeepSeekService from './services/deepseek';
+import GroqService from './services/groq';
+import GeminiService from './services/gemini';
 
 type View = 'model-config' | 'dashboard' | 'team-chat' | 'projects';
 
@@ -22,17 +24,12 @@ function App() {
     const savedModel = localStorage.getItem('selectedModel');
     const savedProvider = localStorage.getItem('selectedProvider') as Provider | null;
     if (savedModel) setSelectedModel(savedModel);
-    if (savedProvider && (savedProvider === 'ollama' || savedProvider === 'deepseek')) {
+    if (savedProvider && ['ollama', 'deepseek', 'groq', 'gemini'].includes(savedProvider)) {
       setSelectedProvider(savedProvider);
     }
   }, []);
 
-  // Auto-skip to dashboard if model is configured
-  useEffect(() => {
-    if (selectedModel && currentView === 'model-config') {
-      setCurrentView('dashboard');
-    }
-  }, [selectedModel, currentView]);
+  // Removed auto-redirect so user can change model anytime
 
   const handleModelSelect = (model: string) => {
     setSelectedModel(model);

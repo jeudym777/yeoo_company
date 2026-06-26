@@ -16,12 +16,13 @@ export const Projects: React.FC<ProjectsProps> = ({ provider, model, onOpenProje
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    setProjects(storageService.getAllProjects());
+    storageService.getAllProjects().then(setProjects);
   }, []);
 
-  const handleDelete = (id: string) => {
-    storageService.deleteProject(id);
-    setProjects(storageService.getAllProjects());
+  const handleDelete = async (id: string) => {
+    await storageService.deleteProject(id);
+    const updated = await storageService.getAllProjects();
+    setProjects(updated);
     setDeleteConfirm(null);
   };
 

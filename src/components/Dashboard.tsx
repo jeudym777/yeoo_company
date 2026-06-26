@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Agent, Provider } from '../types';
 import { YEOO_AGENTS, YEOO_DIVISIONS, getAgentsByDivision } from '../agents_yeoo';
 import { avatarService } from '../services/avatar';
-import { Search, Filter, Users, ArrowRight, Check, FolderOpen } from 'lucide-react';
+import { storageService } from '../services/storage';
+import { AgentContextModal } from './AgentContextModal';
+import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2 } from 'lucide-react';
 
 interface DashboardProps {
   provider: Provider;
@@ -23,6 +25,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDivision, setSelectedDivision] = useState<string | null>(null);
   const [teamName, setTeamName] = useState('');
+  const [contextAgent, setContextAgent] = useState<Agent | null>(null);
+  const [contextBadges, setContextBadges] = useState<Record<string, boolean>>({});
+
+  // Load context badges on mount and when modal closes
+  const refreshContextBadges = () => {
+    storageService.getAgentContexts().then((ctxs) => {
+      const badges: Record<string, boolean> = {};
+      for (const [id, ctx] of Object.entries(ctxs)) {
+        badges[id] = ctx.trim().length > 0;
+      }
+      setContextBadges(badges);
+    });
+  };
+
+  useEffect(() => {
+    refreshContextBadges();
+  }, []);
+
+  useEffect(() => {
+    if (!contextAgent) refreshContextBadges(); // Refresh when modal closes
+  }, [contextAgent]);
 
   const filteredAgents = YEOO_AGENTS.filter((agent) => {
     const matchesSearch =
@@ -149,6 +172,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredAgents.map((agent) => {
             const isSelected = selectedAgents.some((a) => a.id === agent.id);
+            const hasContext = contextBadges[agent.id];
             return (
               <button
                 key={agent.id}
@@ -174,6 +198,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <h3 className="font-bold text-white text-sm">{agent.name}</h3>
                 <p className="text-xs text-purple-400 mb-2">{agent.firstName} {agent.lastName} · {agent.division}</p>
                 <p className="text-xs text-gray-400 line-clamp-2 mb-3">{agent.description}</p>
+                <div className="flex gap-1 mb-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setContextAgent(agent); }}
+                    className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg border transition-all ${
+                      hasContext
+                        ? 'text-green-400 bg-green-500/10 border-green-500/30'
+                        : 'bg-[#1A1F2E] text-gray-400 border-[#2D3548] hover:text-purple-400 hover:bg-purple-500/10'
+                    }`}
+                  >
+                    <Settings2 size={10} />
+                    Context{hasContext ? ' ✓' : ''}
+                  </button>
+                </div>
                 <div className="flex flex-wrap gap-1">
                   {agent.expertise.slice(0, 3).map((skill) => (
                     <span
@@ -191,6 +228,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
             );
           })}
         </div>
+
+        {/* Agent Context Modal */}
+        {contextAgent && (
+          <AgentContextModal
+            agent={contextAgent}
+            onClose={() => setContextAgent(null)}
+            onSaved={() => {}}
+          />
+        )}
 
         {/* Create Team Bar */}
         {selectedAgents.length > 0 && (

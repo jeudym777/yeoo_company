@@ -1,4 +1,4 @@
-export type Provider = 'ollama' | 'deepseek';
+export type Provider = 'ollama' | 'deepseek' | 'groq' | 'gemini';
 
 export interface Agent {
   id: string;
