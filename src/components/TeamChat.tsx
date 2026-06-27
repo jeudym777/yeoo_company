@@ -9,7 +9,8 @@ import GroqService from '../services/groq';
 import GeminiService from '../services/gemini';
 import { CEOServiceInstance } from '../services/ceo';
 import jsPDF from 'jspdf';
-import { Send, ArrowLeft, Download, FileText, Save, Loader2, Users, Crown } from 'lucide-react';
+import { Send, ArrowLeft, Download, FileText, Save, Loader2, Users, Crown, ClipboardList } from 'lucide-react';
+import { SRDModal } from './SRDModal';
 
 interface TeamChatProps {
   agents: Agent[];
@@ -42,6 +43,7 @@ export const TeamChat: React.FC<TeamChatProps> = ({
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [executiveReport, setExecutiveReport] = useState('');
+  const [showSrdModal, setShowSrdModal] = useState(false);
 
   const selectedAgent = agents.find((a) => a.id === selectedAgentId);
   const [agentContexts, setAgentContexts] = useState<Record<string, string>>({});
@@ -217,6 +219,14 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
             Save
           </button>
           <button
+            onClick={() => setShowSrdModal(true)}
+            disabled={messages.length === 0}
+            className="flex items-center gap-1.5 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-3 py-1.5 rounded-lg hover:bg-[#2D3548] transition-all text-xs disabled:opacity-50"
+          >
+            <ClipboardList size={14} />
+            Requerimientos
+          </button>
+          <button
             onClick={handleGenerateReport}
             disabled={isGeneratingReport || messages.length === 0}
             className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg hover:from-purple-500 hover:to-indigo-500 transition-all text-xs disabled:opacity-50"
@@ -349,6 +359,15 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
       </div>
 
       {/* Executive Report Modal */}
+      {showSrdModal && (
+        <SRDModal
+          projectName={projectName}
+          agents={agents}
+          messages={messages}
+          onClose={() => setShowSrdModal(false)}
+        />
+      )}
+
       {showReport && executiveReport && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[#111827] border border-[#2D3548] rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
