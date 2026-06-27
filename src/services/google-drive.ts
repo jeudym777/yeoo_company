@@ -25,7 +25,9 @@ class GoogleDriveService {
   async login(): Promise<string> {
     return new Promise((resolve, reject) => {
       // Open Google OAuth2 popup
-      const redirectUri = window.location.origin;
+      const redirectUri = window.location.origin.includes('localhost')
+        ? 'http://localhost:5174'
+        : window.location.origin;
       const scope = 'https://www.googleapis.com/auth/drive.file';
       const authUrl =
         'https://accounts.google.com/o/oauth2/v2/auth' +
