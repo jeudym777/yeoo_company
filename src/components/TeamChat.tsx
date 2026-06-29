@@ -9,7 +9,8 @@ import GroqService from '../services/groq';
 import GeminiService from '../services/gemini';
 import { CEOServiceInstance } from '../services/ceo';
 import { downloadExecutivePDF } from '../services/pdfGenerator';
-import { Send, ArrowLeft, Download, FileText, Save, Loader2, Users, Crown, ClipboardList, CheckSquare, Square } from 'lucide-react';
+import { Send, ArrowLeft, Download, FileText, Save, Loader2, Users, Crown, ClipboardList, CheckSquare, Square, Trash2 } from 'lucide-react';
+import { supabase } from '../services/supabase';
 import { SRDModal } from './SRDModal';
 import MemoryBankPanel from './MemoryBankPanel';
 import { memoryBankService } from '../services/memoryBank';
@@ -40,6 +41,8 @@ export const TeamChat: React.FC<TeamChatProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string>(agents[0]?.id || '');
+  const [hoveredMsgId, setHoveredMsgId] = useState<string | null>(null);
+  const [deletingMsgId, setDeletingMsgId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [projectName, setProjectName] = useState(teamName);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -146,6 +149,22 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDeleteMessage = async (msgId: string) => {
+    setDeletingMsgId(msgId);
+    // Remove from local state immediately
+    setMessages((prev) => prev.filter((m) => m.id !== msgId));
+    // Delete from Supabase
+    try {
+      if (stableProjectId.current) {
+        await supabase.from('messages').delete().eq('id', msgId).eq('project_id', stableProjectId.current);
+      }
+    } catch {
+      // Silent — message is already removed from UI
+    }
+    setDeletingMsgId(null);
+    setHoveredMsgId(null);
   };
 
   const handleSaveProject = () => {
@@ -386,20 +405,42 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
                 <div
                   key={msg.id}
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  onMouseEnter={() => setHoveredMsgId(msg.id)}
+                  onMouseLeave={() => setHoveredMsgId(null)}
                 >
-                  <div
-                    className={`max-w-2xl px-4 py-2.5 rounded-xl text-sm ${
-                      msg.role === 'user'
-                        ? 'bg-purple-600 text-white'
-                        : msg.role === 'system'
-                        ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                        : 'bg-[#1A1F2E] text-gray-200 border border-[#2D3548]'
-                    }`}
-                  >
-                    {msg.agentName && (
-                      <p className="text-xs font-semibold mb-1 opacity-70">{msg.agentName}</p>
+                  <div className="relative group">
+                    <div
+                      className={`max-w-2xl px-4 py-2.5 rounded-xl text-sm ${
+                        msg.role === 'user'
+                          ? 'bg-purple-600 text-white'
+                          : msg.role === 'system'
+                          ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                          : 'bg-[#1A1F2E] text-gray-200 border border-[#2D3548]'
+                      }`}
+                    >
+                      {msg.agentName && (
+                        <p className="text-xs font-semibold mb-1 opacity-70">{msg.agentName}</p>
+                      )}
+                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                    </div>
+                    {(hoveredMsgId === msg.id || deletingMsgId === msg.id) && (
+                      <button
+                        onClick={() => handleDeleteMessage(msg.id)}
+                        disabled={deletingMsgId === msg.id}
+                        className={`absolute -top-1.5 -right-1.5 p-0.5 rounded-full transition-all ${
+                          deletingMsgId === msg.id
+                            ? 'bg-red-600 text-white'
+                            : 'bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white'
+                        }`}
+                        title="Delete message"
+                      >
+                        {deletingMsgId === msg.id ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={10} />
+                        )}
+                      </button>
                     )}
-                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                   </div>
                 </div>
               ))
