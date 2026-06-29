@@ -19,7 +19,7 @@ export interface Client {
   updatedAt: string;
 }
 
-const STORAGE_KEY = 'yeoo_clientes_cache';
+const STORAGE_KEY = 'yeoo_clients_cache';
 
 class ClientService {
   private mapRow(row: any): Client {
@@ -50,19 +50,103 @@ class ClientService {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        // Cache en localStorage
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.map(this.mapRow)));
-        return data.map(this.mapRow);
+      if (error) {
+        console.warn('ClientService.getAll error:', error.message);
+        return this.getLocalCache();
       }
-    } catch {}
 
-    // Fallback a cache local
+      if (data && data.length > 0) {
+        const mapped = data.map(this.mapRow);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mapped));
+        return mapped;
+      }
+
+      // Data is empty array — still valid (no clients yet)
+      return [];
+    } catch (err) {
+      console.warn('ClientService.getAll exception:', err);
+      return this.getLocalCache();
+    }
+  }
+
+  async getById(id: string): Promise<Client | null> {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data ? this.mapRow(data) : null;
+    } catch (err) {
+      console.warn('ClientService.getById error:', err);
+      const cached = this.getLocalCache();
+      return cached.find((c) => c.id === id) || null;
+    }
+  }
+
+  async save(client: Client): Promise<void> {
+    const row = {
+      id: client.id,
+      nombre: client.nombre,
+      apellidos: client.apellidos,
+      email: client.email,
+      telefono: client.telefono || null,
+      tipo_identificacion: client.tipo_identificacion || 'cedula',
+      numero_identificacion: client.numero_identificacion,
+      puntos_acumulados: client.puntos_acumulados || 0,
+      nivel_fidelidad: client.nivel_fidelidad || 'bronce',
+      qr_code: client.qr_code,
+      recibir_promociones: client.recibir_promociones || false,
+      cumpleanos_dia: client.cumpleanos_dia || null,
+      cumpleanos_mes: client.cumpleanos_mes || null,
+      fecha_ultimo_punto: client.fecha_ultimo_punto || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    try {
+      const { error } = await supabase.from('clients').upsert(row, { onConflict: 'id' });
+      if (error) throw error;
+      // Actualizar cache local
+      this.updateLocalCache(client);
+    } catch (err) {
+      console.warn('ClientService.save error:', err);
+      // Guardar en localStorage como respaldo
+      this.updateLocalCache(client);
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      const { error } = await supabase.from('clients').delete().eq('id', id);
+      if (error) throw error;
+      this.removeLocalCache(id);
+    } catch (err) {
+      console.warn('ClientService.delete error:', err);
+      this.removeLocalCache(id);
+    }
+  }
+
+  // --- Local cache helpers ---
+
+  private getLocalCache(): Client[] {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     } catch {
       return [];
     }
+  }
+
+  private updateLocalCache(client: Client): void {
+    const cached = this.getLocalCache().filter((c) => c.id !== client.id);
+    cached.push(client);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cached));
+  }
+
+  private removeLocalCache(id: string): void {
+    const cached = this.getLocalCache().filter((c) => c.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cached));
   }
 }
 
