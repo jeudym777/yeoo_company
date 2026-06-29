@@ -1,11 +1,3 @@
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, BarChart as BarChartType } from 'recharts';
-
-// Simple render helper: generates a PNG data URL from a React element using recharts + html2canvas
-export async function chartToDataURL(chartElement: React.ReactNode): Promise<string> {
-  return '';
-}
-
 // Generates a cost breakdown bar chart as base64 PNG
 export function generateCostBarChart(data: { name: string; cost: number }[]): string {
   // For .docx insertion we need actual base64, so we use a lightweight approach:
