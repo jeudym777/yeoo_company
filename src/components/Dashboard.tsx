@@ -5,8 +5,9 @@ import { avatarService } from '../services/avatar';
 import { storageService } from '../services/storage';
 import { agentService } from '../services/agent-service';
 import { AgentContextModal } from './AgentContextModal';
-import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog } from 'lucide-react';
+import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog, Building2 } from 'lucide-react';
 import { AgentManagerModal } from './AgentManagerModal';
+import { ClientsPanel } from './ClientsPanel';
 
 interface DashboardProps {
   provider: Provider;
@@ -32,6 +33,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [contextAgent, setContextAgent] = useState<Agent | null>(null);
   const [contextBadges, setContextBadges] = useState<Record<string, boolean>>({});
   const [showAgentManager, setShowAgentManager] = useState(false);
+  const [showClients, setShowClients] = useState(false);
 
   // Load agents from Supabase (with fallback to agents_yeoo.ts)
   useEffect(() => {
@@ -104,11 +106,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setShowClients(true)}
+              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
+            >
+              <Building2 size={16} />
+              Clients
+            </button>
+            <button
               onClick={() => { agentService.clearCache(); setShowAgentManager(true); }}
               className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
             >
               <UserCog size={16} />
-              Manage Agents
+              Agents
             </button>
             <button
               onClick={onProjectsClick}
@@ -251,6 +260,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             );
           })}
         </div>
+
+        {/* Clients Panel */}
+        {showClients && (
+          <ClientsPanel onClose={() => setShowClients(false)} />
+        )}
 
         {/* Agent Manager Modal */}
         {showAgentManager && (

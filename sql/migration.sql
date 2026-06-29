@@ -58,6 +58,20 @@ CREATE TABLE IF NOT EXISTS memory_bank_documents (
   UNIQUE(project_id, doc_type)
 );
 
+-- Clients table (contact management)
+CREATE TABLE IF NOT EXISTS clients (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  company TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  position TEXT NOT NULL DEFAULT '',
+  notes TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'lead', 'archived')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Index for fast lookups
 CREATE INDEX IF NOT EXISTS idx_messages_project_id ON messages(project_id);
 CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at DESC);
@@ -68,10 +82,10 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agent_contexts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE memory_bank_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 
--- Allow public access (anon key) to read/write
-CREATE POLICY "Allow all on projects" ON projects FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on messages" ON messages FOR ALL USING (true) WITH CHECK (true);
+-- Allow public access (anon key) to read/write 
 CREATE POLICY "Allow all on agent_contexts" ON agent_contexts FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on memory_bank_documents" ON memory_bank_documents FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on agents" ON agents FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all on clients" ON clients FOR ALL USING (true) WITH CHECK (true);
