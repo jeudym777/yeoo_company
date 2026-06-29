@@ -1,33 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { clientService, type Client } from '../services/client-service';
-import { Search, Plus, X, Save, Trash2, Building2, Mail, Phone, User, Briefcase, AlertCircle, Loader2 } from 'lucide-react';
-
-const EMPTY_CLIENT = (): Client => ({
-  id: `client-${Date.now()}`,
-  name: '',
-  company: '',
-  email: '',
-  phone: '',
-  position: '',
-  notes: '',
-  status: 'lead',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-});
-
-const STATUS_LABELS: Record<string, string> = {
-  active: 'Active',
-  inactive: 'Inactive',
-  lead: 'Lead',
-  archived: 'Archived',
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  active: 'text-green-400 bg-green-500/10 border-green-500/30',
-  inactive: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
-  lead: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
-  archived: 'text-gray-500 bg-gray-500/10 border-gray-500/30',
-};
+import { Search, Building2, Mail, Phone, User, Award, QrCode, Star, Gift, CalendarDays, Loader2, X } from 'lucide-react';
 
 interface ClientsPanelProps {
   onClose: () => void;
@@ -36,58 +9,28 @@ interface ClientsPanelProps {
 export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState<Client | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Client | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadClients();
   }, []);
 
   const loadClients = async () => {
+    setLoading(true);
     const all = await clientService.getAll();
     setClients(all);
+    setLoading(false);
   };
 
   const filtered = clients.filter(
     (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.company.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
+      `${c.nombre} ${c.apellidos}`.toLowerCase().includes(search.toLowerCase()) ||
+      c.email.toLowerCase().includes(search.toLowerCase()) ||
+      c.numero_identificacion.includes(search)
   );
 
-  const handleNew = () => {
-    setEditing(EMPTY_CLIENT());
-    setDeleteConfirm(null);
-  };
-
-  const handleEdit = (client: Client) => {
-    setEditing({ ...client });
-    setDeleteConfirm(null);
-  };
-
-  const handleFieldChange = (field: keyof Client, value: string) => {
-    if (!editing) return;
-    setEditing({ ...editing, [field]: value });
-  };
-
-  const handleSave = async () => {
-    if (!editing || !editing.name.trim()) return;
-    setSaving(true);
-    await clientService.save(editing);
-    await loadClients();
-    setSaving(false);
-    setEditing(null);
-  };
-
-  const handleDelete = async (id: string) => {
-    await clientService.delete(id);
-    await loadClients();
-    setDeleteConfirm(null);
-    if (editing?.id === id) setEditing(null);
-  };
-
-  const inputClass = "w-full bg-[#0A0A0A] border border-[#1F2937] rounded-lg p-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500";
+  const inputClass = "w-full bg-[#0A0A0A] border border-[#1F2937] rounded-lg p-2.5 text-white text-sm";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -96,25 +39,14 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <Building2 size={22} className="text-purple-400" />
-            <h2 className="text-xl font-bold text-white">Clients & Contacts</h2>
-            <span className="text-sm text-slate-500">({clients.length} contacts)</span>
+            <h2 className="text-xl font-bold text-white">Clientes</h2>
+            <span className="text-sm text-slate-500">({clients.length} registros)</span>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleNew}
-              className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer"
-            >
-              <Plus size={16} />
-              New Client
-            </button>
-            <button onClick={onClose} className="text-slate-400 hover:text-white text-2xl cursor-pointer">
-              ✕
-            </button>
-          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white text-2xl cursor-pointer">✕</button>
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* List */}
+          {/* Lista */}
           <div className="w-72 border-r border-slate-700 flex flex-col">
             <div className="p-3 border-b border-slate-800">
               <div className="relative">
@@ -123,168 +55,170 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search clients..."
+                  placeholder="Buscar clientes..."
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-purple-500"
                 />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
-              {filtered.map((client) => (
-                <button
-                  key={client.id}
-                  onClick={() => handleEdit(client)}
-                  className={`w-full text-left p-2.5 rounded-lg transition ${
-                    editing?.id === client.id
-                      ? 'bg-purple-500/10 border border-purple-500/30'
-                      : 'hover:bg-slate-800 border border-transparent'
-                  }`}
-                >
-                  <p className="text-xs font-semibold text-white truncate">{client.name}</p>
-                  <p className="text-[10px] text-slate-500 truncate">{client.company || client.email || '—'}</p>
-                  <span className={`inline-block text-[9px] px-1.5 py-0.5 rounded border mt-1 ${STATUS_COLORS[client.status] || ''}`}>
-                    {STATUS_LABELS[client.status] || client.status}
-                  </span>
-                </button>
-              ))}
-              {filtered.length === 0 && (
-                <p className="text-xs text-slate-600 text-center py-4">No clients found</p>
+              {loading ? (
+                <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-purple-400" /></div>
+              ) : (
+                filtered.map((client) => (
+                  <button
+                    key={client.id}
+                    onClick={() => setSelected(client)}
+                    className={`w-full text-left p-2.5 rounded-lg transition ${
+                      selected?.id === client.id
+                        ? 'bg-purple-500/10 border border-purple-500/30'
+                        : 'hover:bg-slate-800 border border-transparent'
+                    }`}
+                  >
+                    <p className="text-xs font-semibold text-white truncate">{client.nombre} {client.apellidos}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{client.email}</p>
+                    <div className="flex gap-2 mt-1">
+                      {client.nivel_fidelidad && (
+                        <span className="text-[9px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30">
+                          {client.nivel_fidelidad}
+                        </span>
+                      )}
+                      {client.puntos_acumulados > 0 && (
+                        <span className="text-[9px] text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                          {client.puntos_acumulados} pts
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
+              {!loading && filtered.length === 0 && (
+                <p className="text-xs text-slate-600 text-center py-4">Sin resultados</p>
               )}
             </div>
           </div>
 
-          {/* Editor */}
+          {/* Detalle */}
           <div className="flex-1 overflow-y-auto p-6">
-            {editing ? (
-              <div className="max-w-xl mx-auto space-y-5">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-lg">
+            {selected ? (
+              <div className="max-w-2xl mx-auto space-y-6">
+                {/* Header del cliente */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-2xl shadow-lg">
                     👤
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white">Edit Client</h3>
-                    <p className="text-xs text-slate-500">{editing.id}</p>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white">{selected.nombre} {selected.apellidos}</h3>
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Mail size={12} /> {selected.email}
+                      {selected.telefono && <><span className="text-slate-600">|</span><Phone size={12} /> {selected.telefono}</>}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {selected.qr_code && (
+                      <div className="text-[10px] text-slate-500">
+                        <QrCode size={20} className="text-purple-400 mb-1" />
+                        QR: {selected.qr_code.substring(0, 12)}...
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Name + Company */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">
-                      <User size={10} className="inline mr-1" />Name *
-                    </label>
-                    <input className={inputClass} value={editing.name} onChange={(e) => handleFieldChange('name', e.target.value)} placeholder="Full name" />
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Identificación */}
+                  <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-2">Identificación</label>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-[10px] text-slate-500">Tipo</p>
+                        <p className="text-sm text-white">{selected.tipo_identificacion || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500">Número</p>
+                        <p className="text-sm text-white font-mono">{selected.numero_identificacion}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">
-                      <Building2 size={10} className="inline mr-1" />Company
+
+                  {/* Fidelidad */}
+                  <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-2">
+                      <Star size={12} className="inline text-amber-400 mr-1" />
+                      Programa de Fidelidad
                     </label>
-                    <input className={inputClass} value={editing.company} onChange={(e) => handleFieldChange('company', e.target.value)} placeholder="Company name" />
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500">Nivel</span>
+                        <span className={`text-sm font-bold ${
+                          selected.nivel_fidelidad === 'VIP' ? 'text-amber-400' :
+                          selected.nivel_fidelidad === 'Oro' ? 'text-yellow-300' :
+                          selected.nivel_fidelidad === 'Plata' ? 'text-slate-300' :
+                          'text-slate-400'
+                        }`}>
+                          {selected.nivel_fidelidad || 'Regular'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500">Puntos</span>
+                        <span className="text-lg font-bold text-purple-400">{selected.puntos_acumulados}</span>
+                      </div>
+                      {selected.fecha_ultimo_punto && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500">Último punto</span>
+                          <span className="text-[11px] text-slate-300">
+                            {new Date(selected.fecha_ultimo_punto).toLocaleDateString('es-CR')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Email + Phone */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">
-                      <Mail size={10} className="inline mr-1" />Email
+                {/* Cumpleaños + Promociones */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-2">
+                      <CalendarDays size={12} className="inline mr-1" />
+                      Cumpleaños
                     </label>
-                    <input className={inputClass} type="email" value={editing.email} onChange={(e) => handleFieldChange('email', e.target.value)} placeholder="email@example.com" />
+                    {selected.cumpleanos_dia && selected.cumpleanos_mes ? (
+                      <p className="text-sm text-white">
+                        {selected.cumpleanos_dia} de {selected.cumpleanos_mes}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-slate-500">No registrado</p>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">
-                      <Phone size={10} className="inline mr-1" />Phone
+                  <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <label className="block text-[10px] font-semibold text-slate-500 uppercase mb-2">
+                      <Gift size={12} className="inline mr-1" />
+                      Promociones
                     </label>
-                    <input className={inputClass} value={editing.phone} onChange={(e) => handleFieldChange('phone', e.target.value)} placeholder="+1 555-0000" />
+                    <span className={`text-sm font-medium ${selected.recibir_promociones ? 'text-green-400' : 'text-red-400'}`}>
+                      {selected.recibir_promociones ? '✅ Recibe promociones' : '❌ No recibe promociones'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Position + Status */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">
-                      <Briefcase size={10} className="inline mr-1" />Position
-                    </label>
-                    <input className={inputClass} value={editing.position} onChange={(e) => handleFieldChange('position', e.target.value)} placeholder="e.g. CEO, CTO" />
+                {/* Metadatos */}
+                <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-3">
+                  <div className="flex justify-between text-[10px] text-slate-500">
+                    <span>ID: {selected.id.substring(0, 8)}...</span>
+                    <span>Creado: {new Date(selected.createdAt).toLocaleDateString('es-CR')}</span>
+                    <span>Actualizado: {new Date(selected.updatedAt).toLocaleDateString('es-CR')}</span>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Status</label>
-                    <select className={inputClass} value={editing.status} onChange={(e) => handleFieldChange('status', e.target.value)}>
-                      <option value="lead">Lead</option>
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="archived">Archived</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Notes */}
-                <div>
-                  <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Notes</label>
-                  <textarea
-                    className={`${inputClass} resize-none`}
-                    rows={5}
-                    value={editing.notes}
-                    onChange={(e) => handleFieldChange('notes', e.target.value)}
-                    placeholder="Notes about this client, previous conversations, preferences..."
-                  />
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3 pt-4 border-t border-slate-700">
-                  <button
-                    onClick={() => setDeleteConfirm(editing.id)}
-                    className="flex items-center gap-1.5 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 px-4 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer"
-                  >
-                    <Trash2 size={14} />
-                    Delete
-                  </button>
-                  <div className="flex-1" />
-                  <button
-                    onClick={() => setEditing(null)}
-                    className="bg-slate-800 text-slate-400 border border-slate-700 hover:text-white px-6 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving || !editing.name.trim()}
-                    className="bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition cursor-pointer"
-                  >
-                    {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                    {saving ? 'Saving...' : 'Save to Supabase'}
-                  </button>
                 </div>
               </div>
             ) : (
               <div className="flex items-center justify-center h-full text-slate-500">
                 <div className="text-center">
                   <Building2 size={48} className="mx-auto mb-3 opacity-30" />
-                  <p className="font-medium">Select or create a client</p>
-                  <p className="text-sm">Click a contact from the list or press "New Client"</p>
+                  <p className="font-medium">Selecciona un cliente</p>
+                  <p className="text-sm">Haz clic en un cliente de la lista para ver sus datos</p>
                 </div>
               </div>
             )}
           </div>
         </div>
-
-        {/* Delete Confirmation */}
-        {deleteConfirm && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-60">
-            <div className="bg-slate-900 border border-red-500/30 rounded-xl p-6 max-w-sm shadow-2xl">
-              <div className="flex items-center gap-2 text-red-400 mb-4">
-                <AlertCircle size={20} />
-                <h3 className="font-bold">Delete Client</h3>
-              </div>
-              <p className="text-sm text-slate-400 mb-4">
-                This will permanently remove this contact from Supabase.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button onClick={() => setDeleteConfirm(null)} className="bg-slate-800 text-slate-400 px-4 py-2 rounded-lg text-sm transition cursor-pointer">Cancel</button>
-                <button onClick={() => handleDelete(deleteConfirm)} className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition cursor-pointer">Delete</button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
