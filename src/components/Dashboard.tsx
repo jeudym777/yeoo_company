@@ -5,7 +5,8 @@ import { avatarService } from '../services/avatar';
 import { storageService } from '../services/storage';
 import { agentService } from '../services/agent-service';
 import { AgentContextModal } from './AgentContextModal';
-import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2 } from 'lucide-react';
+import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog } from 'lucide-react';
+import { AgentManagerModal } from './AgentManagerModal';
 
 interface DashboardProps {
   provider: Provider;
@@ -30,6 +31,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [teamName, setTeamName] = useState('');
   const [contextAgent, setContextAgent] = useState<Agent | null>(null);
   const [contextBadges, setContextBadges] = useState<Record<string, boolean>>({});
+  const [showAgentManager, setShowAgentManager] = useState(false);
 
   // Load agents from Supabase (with fallback to agents_yeoo.ts)
   useEffect(() => {
@@ -101,6 +103,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => { agentService.clearCache(); setShowAgentManager(true); }}
+              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
+            >
+              <UserCog size={16} />
+              Manage Agents
+            </button>
             <button
               onClick={onProjectsClick}
               className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
@@ -242,6 +251,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
             );
           })}
         </div>
+
+        {/* Agent Manager Modal */}
+        {showAgentManager && (
+          <AgentManagerModal
+            onClose={() => setShowAgentManager(false)}
+            onAgentsChanged={() => {
+              agentService.clearCache();
+              // Reload agents
+              agentService.getAllAgents().then(setAgents);
+            }}
+          />
+        )}
 
         {/* Agent Context Modal */}
         {contextAgent && (
