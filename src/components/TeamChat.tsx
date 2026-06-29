@@ -462,6 +462,8 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
           projectName={projectName}
           agents={getActiveReportAgents()}
           messages={messages}
+          provider={provider}
+          model={model}
           onClose={() => setShowSrdModal(false)}
         />
       )}
