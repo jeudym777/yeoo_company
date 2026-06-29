@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { clientService, type Client } from '../services/client-service';
-import { Search, Building2, Mail, Phone, User, QrCode, Star, Gift, CalendarDays, Loader2, Plus, Save, Trash2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, Building2, Mail, Phone, QrCode, Star, CalendarDays, Loader2, Plus, Save, Trash2, AlertCircle, RefreshCw } from 'lucide-react';
 
 const NUEVO_CLIENTE = (): Client => ({
   id: crypto.randomUUID ? crypto.randomUUID() : `cli-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -17,8 +17,8 @@ const NUEVO_CLIENTE = (): Client => ({
   cumpleanos_dia: null,
   cumpleanos_mes: null,
   fecha_ultimo_punto: null,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 });
 
 const NIVELES = ['bronce', 'plata', 'oro', 'platino'];
@@ -96,7 +96,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-[95vw] max-w-6xl h-[90vh] flex flex-col overflow-hidden">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <Building2 size={22} className="text-purple-400" />
@@ -111,7 +110,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Lista */}
           <div className="w-80 border-r border-slate-700 flex flex-col">
             <div className="p-3 border-b border-slate-800">
               <div className="relative">
@@ -143,7 +141,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Editor / Detalle */}
           <div className="flex-1 overflow-y-auto p-6">
             {editing ? (
               <div className="max-w-xl mx-auto space-y-5">
@@ -151,7 +148,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   {editing.id.includes('cli-') ? '🆕 Nuevo Cliente' : '✏️ Editar Cliente'}
                 </h3>
 
-                {/* Nombre + Apellidos */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Nombre *</label>
@@ -163,7 +159,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   </div>
                 </div>
 
-                {/* Email + Teléfono */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Email *</label>
@@ -175,10 +170,9 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   </div>
                 </div>
 
-                {/* Identificación */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Tipo Identificación</label>
+                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Tipo ID</label>
                     <select className={inputClass} value={editing.tipo_identificacion} onChange={(e) => handleField('tipo_identificacion', e.target.value)}>
                       {TIPOS_ID.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -189,7 +183,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   </div>
                 </div>
 
-                {/* Fidelidad */}
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Nivel</label>
@@ -202,7 +195,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                     <input className={inputClass} type="number" min={0} value={editing.puntos_acumulados} onChange={(e) => handleField('puntos_acumulados', parseInt(e.target.value) || 0)} />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Promociones</label>
+                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Promos</label>
                     <select className={inputClass} value={editing.recibir_promociones ? 'si' : 'no'} onChange={(e) => handleField('recibir_promociones', e.target.value === 'si')}>
                       <option value="si">✅ Sí</option>
                       <option value="no">❌ No</option>
@@ -210,10 +203,9 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   </div>
                 </div>
 
-                {/* Cumpleaños */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Mes de cumpleaños</label>
+                    <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Mes cumpleaños</label>
                     <select className={inputClass} value={editing.cumpleanos_mes || ''} onChange={(e) => handleField('cumpleanos_mes', e.target.value || null)}>
                       <option value="">—</option>
                       {MESES.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -225,7 +217,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-3 pt-4 border-t border-slate-700">
                   <button onClick={() => setDeleteConfirm(editing.id)} className="flex items-center gap-1.5 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 px-4 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer">
                     <Trash2 size={14} /> Eliminar
@@ -250,7 +241,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Delete Confirm */}
         {deleteConfirm && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-60">
             <div className="bg-slate-900 border border-red-500/30 rounded-xl p-6 max-w-sm shadow-2xl">
