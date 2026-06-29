@@ -148,13 +148,13 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] text-slate-500">Nivel</span>
-                        <span className={`text-sm font-bold ${
-                          selected.nivel_fidelidad === 'VIP' ? 'text-amber-400' :
-                          selected.nivel_fidelidad === 'Oro' ? 'text-yellow-300' :
-                          selected.nivel_fidelidad === 'Plata' ? 'text-slate-300' :
-                          'text-slate-400'
+                        <span className={`text-sm font-bold capitalize ${
+                          selected.nivel_fidelidad === 'platino' ? 'text-amber-400' :
+                          selected.nivel_fidelidad === 'oro' ? 'text-yellow-300' :
+                          selected.nivel_fidelidad === 'plata' ? 'text-slate-300' :
+                          'text-orange-400'
                         }`}>
-                          {selected.nivel_fidelidad || 'Regular'}
+                          {selected.nivel_fidelidad || 'bronce'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">

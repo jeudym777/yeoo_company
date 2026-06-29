@@ -46,7 +46,7 @@ class ClientService {
   async getAll(): Promise<Client[]> {
     try {
       const { data, error } = await supabase
-        .from('clientes')
+        .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
 
