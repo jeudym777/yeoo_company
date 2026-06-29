@@ -307,7 +307,7 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
     if (options.outputFormat === 'pdf') {
       // Generate PDF instead of docx
       const { downloadExecutivePDF } = await import('../services/pdfGenerator');
-      const { parseCostData, generateCostBarChart, generateRiskMatrix } = await import('../services/chart-generator');
+      const { parseCostData, generateCostBarChart, generateRiskMatrix } = await import('../services/chart-generator.ts');
       
       const contributing = activeAgents.filter((a) => msgs.some((m) => m.agentName === a.name));
       const agentOutputs = contributing.map((a) => ({
