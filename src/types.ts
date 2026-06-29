@@ -6,7 +6,8 @@ export type MemoryBankDocType =
   | 'progress'
   | 'systemPatterns'
   | 'techContext'
-  | 'decisionLog';
+  | 'decisionLog'
+  | 'srdFormat';
 
 export interface MemoryBankDocument {
   id: string;

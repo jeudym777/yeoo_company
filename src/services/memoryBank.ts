@@ -11,6 +11,7 @@ const DOC_TYPES: MemoryBankDocType[] = [
 ];
 
 const TEMPLATES: Record<MemoryBankDocType, string> = {
+  srdFormat: `# SRD Format (Reference for Agents)\n\nWhen generating requirements, use this exact format so the SRD generator can parse them:\n\n\`\`\`\nRF-XX: [Título del requerimiento]\n[Descripción detallada de qué debe hacer el sistema, pantallas, campos, botones, etc.]\nPrioridad: [Alta/Media/Baja]\n\`\`\`\n\nExample:\nRF-01: Login\nSe requiere que el sistema muestre una vista para iniciar sesión con campos de usuario, contraseña, botón de login, registro y recuperar contraseña.\nPrioridad: Alta\n\nThe system will automatically detect RF-XX patterns and extract:\n- Código (RF-XX)\n- Nombre (from title)\n- Descripción (full description)\n- Prioridad (from "Prioridad:" line)\n`,
   productContext: `# Product Context
 
 ## What are we building?
@@ -108,6 +109,7 @@ class MemoryBankService {
       systemPatterns: 'System Patterns',
       techContext: 'Tech Context',
       decisionLog: 'Decision Log',
+      srdFormat: 'SRD Format',
     };
     return labels[docType];
   }
