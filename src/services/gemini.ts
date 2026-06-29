@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 // Use Vite proxy in dev, direct URL in production
 const GEMINI_BASE_URL = import.meta.env.DEV ? '/api/gemini' : 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -20,48 +18,36 @@ class GeminiService {
   }
 
   async generate(options: GenerateOptions): Promise<string> {
+    const modelId = options.model || 'gemini-2.0-flash';
+    const url = `${GEMINI_BASE_URL}/models/${modelId}:generateContent?key=${this.getApiKey()}`;
+
+    const payload: any = {
+      contents: [{ role: 'user', parts: [{ text: options.prompt }] }],
+      generationConfig: {
+        temperature: options.temperature ?? 0.7,
+        topP: options.top_p ?? 0.95,
+        maxOutputTokens: 4096,
+      },
+    };
+
+    if (options.system) {
+      payload.systemInstruction = { parts: [{ text: options.system }] };
+    }
+
     try {
-      const modelId = options.model || 'gemini-2.0-flash';
-      const url = `${GEMINI_BASE_URL}/models/${modelId}:generateContent?key=${this.getApiKey()}`;
-
-      const contents: any[] = [];
-      const systemInstruction = options.system
-        ? { parts: [{ text: options.system }] }
-        : undefined;
-
-      contents.push({
-        role: 'user',
-        parts: [{ text: options.prompt }],
-      });
-
-      const payload: any = {
-        contents,
-        generationConfig: {
-          temperature: options.temperature ?? 0.7,
-          topP: options.top_p ?? 0.95,
-          maxOutputTokens: 4096,
-        },
-      };
-
-      if (systemInstruction) {
-        payload.systemInstruction = systemInstruction;
-      }
-
-      const response = await axios.post(url, payload, {
+      const res = await fetch(url, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        timeout: 120000,
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(120000),
       });
 
-      return response.data.candidates[0].content.parts[0].text;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (!error.response) {
-          throw new Error(
-            'Cannot reach Gemini (Network Error). The browser may be blocking the request. Try using Groq or Ollama instead.'
-          );
-        }
-        const status = error.response?.status;
-        const msg = error.response?.data?.error?.message || '';
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData?.error?.message || '';
+        const status = res.status;
+
+        if (!res) throw new Error('Cannot reach Gemini (Network Error). The browser may be blocking the request. Try using Groq or Ollama instead.');
         if (status === 400) {
           if (msg.includes('API_KEY_INVALID')) throw new Error('Gemini API key is invalid. Get a new one at aistudio.google.com.');
           if (msg.includes('not found') || msg.includes('models/')) throw new Error(`Gemini model "${options.model}" not found. Use gemini-1.5-flash or gemini-1.5-pro.`);
@@ -69,65 +55,77 @@ class GeminiService {
         }
         if (status === 403) throw new Error('Gemini API key lacks permission. Enable "Generative Language API" at console.cloud.google.com.');
         if (status === 429) throw new Error('Gemini rate limit (429). This API key may have reached its quota. Try Ollama (local, unlimited) or Groq (14,400 req/day).');
-        throw new Error(`Gemini API Error (${status}): ${msg || error.message}`);
+        throw new Error(`Gemini API Error (${status}): ${msg || res.statusText}`);
       }
-      throw error;
+
+      const data = await res.json();
+      return data.candidates[0].content.parts[0].text;
+    } catch (err) {
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        throw new Error('Cannot reach Gemini (Network Error). The browser may be blocking the request. Try using Groq or Ollama instead.');
+      }
+      throw err;
     }
   }
 
   async *generateStream(options: GenerateOptions): AsyncGenerator<string> {
+    const modelId = options.model || 'gemini-2.0-flash';
+    const url = `${GEMINI_BASE_URL}/models/${modelId}:streamGenerateContent?alt=sse&key=${this.getApiKey()}`;
+
+    const payload: any = {
+      contents: [{ role: 'user', parts: [{ text: options.prompt }] }],
+      generationConfig: {
+        temperature: options.temperature ?? 0.7,
+        topP: options.top_p ?? 0.95,
+        maxOutputTokens: 4096,
+      },
+    };
+
+    if (options.system) payload.systemInstruction = { parts: [{ text: options.system }] };
+
     try {
-      const modelId = options.model || 'gemini-2.0-flash';
-      const url = `${GEMINI_BASE_URL}/models/${modelId}:streamGenerateContent?alt=sse&key=${this.getApiKey()}`;
-
-      const contents: any[] = [];
-      const systemInstruction = options.system
-        ? { parts: [{ text: options.system }] }
-        : undefined;
-
-      contents.push({ role: 'user', parts: [{ text: options.prompt }] });
-
-      const payload: any = {
-        contents,
-        generationConfig: {
-          temperature: options.temperature ?? 0.7,
-          topP: options.top_p ?? 0.95,
-          maxOutputTokens: 4096,
-        },
-      };
-
-      if (systemInstruction) payload.systemInstruction = systemInstruction;
-
-      const response = await axios.post(url, payload, {
+      const res = await fetch(url, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        timeout: 120000,
-        responseType: 'stream',
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(120000),
       });
 
-      for await (const chunk of response.data) {
-        const lines = chunk.toString().split('\n');
+      if (!res.ok) throw new Error(`Gemini API Error: ${res.statusText}`);
+      if (!res.body) throw new Error('No response body for stream');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data = line.slice(6).trim();
-            if (!data || data === '[DONE]') continue;
+            const dataStr = line.slice(6).trim();
+            if (!dataStr || dataStr === '[DONE]') continue;
             try {
-              const json = JSON.parse(data);
+              const json = JSON.parse(dataStr);
               const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
               if (text) yield text;
             } catch { /* skip */ }
           }
         }
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) throw new Error(`Gemini API Error: ${error.message}`);
-      throw error;
+    } catch (err) {
+      if (err instanceof TypeError) throw new Error(`Gemini API Error: ${err.message}`);
+      throw err;
     }
   }
 
   listModels(): string[] {
-    return [
-      'gemini-2.0-flash',
-    ];
+    return ['gemini-2.0-flash'];
   }
 }
 
