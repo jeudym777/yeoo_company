@@ -1,5 +1,21 @@
 export type Provider = 'ollama' | 'deepseek' | 'groq' | 'gemini';
 
+export type MemoryBankDocType =
+  | 'productContext'
+  | 'activeContext'
+  | 'progress'
+  | 'systemPatterns'
+  | 'techContext'
+  | 'decisionLog';
+
+export interface MemoryBankDocument {
+  id: string;
+  projectId: string;
+  docType: MemoryBankDocType;
+  content: string;
+  updatedAt: string;
+}
+
 export interface Agent {
   id: string;
   name: string;

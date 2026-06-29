@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import type { Agent, Provider } from '../types';
-import { YEOO_AGENTS, YEOO_DIVISIONS, getAgentsByDivision } from '../agents_yeoo';
+import { YEOO_DIVISIONS, getAgentsByDivision } from '../agents_yeoo';
 import { avatarService } from '../services/avatar';
 import { storageService } from '../services/storage';
+import { agentService } from '../services/agent-service';
 import { AgentContextModal } from './AgentContextModal';
-import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2 } from 'lucide-react';
+import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2 } from 'lucide-react';
 
 interface DashboardProps {
   provider: Provider;
@@ -21,12 +22,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onProjectsClick,
   onChangeConfig,
 }) => {
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [loadingAgents, setLoadingAgents] = useState(true);
   const [selectedAgents, setSelectedAgents] = useState<Agent[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDivision, setSelectedDivision] = useState<string | null>(null);
   const [teamName, setTeamName] = useState('');
   const [contextAgent, setContextAgent] = useState<Agent | null>(null);
   const [contextBadges, setContextBadges] = useState<Record<string, boolean>>({});
+
+  // Load agents from Supabase (with fallback to agents_yeoo.ts)
+  useEffect(() => {
+    const loadAgents = async () => {
+      await agentService.seedDefaultAgents();
+      const allAgents = await agentService.getAllAgents();
+      setAgents(allAgents);
+      setLoadingAgents(false);
+    };
+    loadAgents();
+  }, []);
 
   // Load context badges on mount and when modal closes
   const refreshContextBadges = () => {
@@ -40,14 +54,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   useEffect(() => {
-    refreshContextBadges();
-  }, []);
+    if (!loadingAgents) refreshContextBadges();
+  }, [loadingAgents]);
 
   useEffect(() => {
     if (!contextAgent) refreshContextBadges(); // Refresh when modal closes
   }, [contextAgent]);
 
-  const filteredAgents = YEOO_AGENTS.filter((agent) => {
+  const filteredAgents = agents.filter((agent) => {
     const matchesSearch =
       agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       agent.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,7 +124,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <Users size={18} className="text-purple-400" />
               <span className="text-sm text-gray-400">Total Agents</span>
             </div>
-            <p className="text-2xl font-bold text-white mt-1">{YEOO_AGENTS.length}</p>
+          <p className="text-2xl font-bold text-white mt-1">{agents.length}</p>
           </div>
           <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-4">
             <div className="flex items-center gap-2">

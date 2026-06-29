@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { Agent, Provider } from '../types';
 import type { ChatMessage, SavedProject } from '../services/storage';
 import { storageService } from '../services/storage';
@@ -8,9 +8,11 @@ import DeepSeekService from '../services/deepseek';
 import GroqService from '../services/groq';
 import GeminiService from '../services/gemini';
 import { CEOServiceInstance } from '../services/ceo';
-import jsPDF from 'jspdf';
-import { Send, ArrowLeft, Download, FileText, Save, Loader2, Users, Crown, ClipboardList } from 'lucide-react';
+import { downloadExecutivePDF } from '../services/pdfGenerator';
+import { Send, ArrowLeft, Download, FileText, Save, Loader2, Users, Crown, ClipboardList, CheckSquare, Square } from 'lucide-react';
 import { SRDModal } from './SRDModal';
+import MemoryBankPanel from './MemoryBankPanel';
+import { memoryBankService } from '../services/memoryBank';
 
 interface TeamChatProps {
   agents: Agent[];
@@ -44,13 +46,39 @@ export const TeamChat: React.FC<TeamChatProps> = ({
   const [showReport, setShowReport] = useState(false);
   const [executiveReport, setExecutiveReport] = useState('');
   const [showSrdModal, setShowSrdModal] = useState(false);
+  const [showMemoryBank, setShowMemoryBank] = useState(false);
+  const stableProjectId = useRef(projectId || `proj-${Date.now()}`);
+  const memoryBankContextRef = useRef('');
+
+  // Agents selected to contribute to reports (default: all)
+  const [reportSelectedAgents, setReportSelectedAgents] = useState<Set<string>>(
+    new Set(agents.map((a) => a.id))
+  );
 
   const selectedAgent = agents.find((a) => a.id === selectedAgentId);
   const [agentContexts, setAgentContexts] = useState<Record<string, string>>({});
 
+  const reportSelectedCount = reportSelectedAgents.size;
+  const totalAgents = agents.length;
+
+  // Load Memory Bank content into context ref
+  const loadMemoryBankContext = useCallback(async () => {
+    try {
+      const docs = await memoryBankService.getAllDocuments(stableProjectId.current);
+      if (docs.length > 0) {
+        memoryBankContextRef.current = docs
+          .map((d) => `### ${memoryBankService.getLabel(d.docType)}\n${d.content}`)
+          .join('\n\n');
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     storageService.getAgentContexts().then(setAgentContexts);
-  }, []);
+    memoryBankService.initializeProject(stableProjectId.current).then(() => {
+      loadMemoryBankContext();
+    });
+  }, [loadMemoryBankContext]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -74,10 +102,17 @@ export const TeamChat: React.FC<TeamChatProps> = ({
 
     try {
       const context = agentContexts[selectedAgent.id] || '';
-      const systemPrompt = `${selectedAgent.prompt}
+      const memoryBankContext = memoryBankContextRef.current;
+      
+      let systemPrompt = `${selectedAgent.prompt}
 ${context ? `CUSTOM CONTEXT: ${context}` : ''}
 You are ${selectedAgent.name} from the ${selectedAgent.division} division at YEOO Labs.
 Provide expert, detailed analysis and recommendations. Be professional and thorough.`;
+
+      // Inject Memory Bank as reference context for the agent
+      if (memoryBankContext) {
+        systemPrompt += `\n\n--- PROJECT MEMORY BANK (Reference Context) ---\n${memoryBankContext}\n--- END MEMORY BANK ---\n\nUse the Memory Bank above as reference for your analysis when relevant.`;
+      }
 
       let response: string;
       const genOpts = { model, prompt: inputValue, system: systemPrompt, temperature: 0.7 };
@@ -115,7 +150,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
 
   const handleSaveProject = () => {
     const project: SavedProject = {
-      id: projectId || `proj-${Date.now()}`,
+      id: stableProjectId.current,
       name: projectName || teamName,
       createdAt: new Date().toISOString(),
       provider,
@@ -129,28 +164,65 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
     alert('Project saved successfully!');
   };
 
+  const toggleReportAgent = (agentId: string) => {
+    setReportSelectedAgents((prev) => {
+      const next = new Set(prev);
+      if (next.has(agentId)) {
+        next.delete(agentId);
+      } else {
+        next.add(agentId);
+      }
+      return next;
+    });
+  };
+
+  // Filter agents that are selected AND have messages
+  const getActiveReportAgents = useCallback(() => {
+    return agents.filter(
+      (a) => reportSelectedAgents.has(a.id) && messages.some((m) => m.agentName === a.name)
+    );
+  }, [agents, reportSelectedAgents, messages]);
+
+  const getActiveReportAgentOutputs = useCallback(() => {
+    return getActiveReportAgents().map((a) => ({
+      name: a.name,
+      role: a.division,
+      output: messages
+        .filter((m) => m.agentName === a.name)
+        .map((m) => m.content)
+        .join('\n'),
+    }));
+  }, [getActiveReportAgents, messages]);
+
   const handleGenerateReport = async () => {
     if (messages.length === 0) return;
+    const activeAgents = getActiveReportAgents();
+    if (activeAgents.length === 0) {
+      setConnectionError('No agents selected for the report. Select at least one agent in the sidebar.');
+      return;
+    }
     setIsGeneratingReport(true);
 
     try {
       const conversationText = messages
+        .filter((m) => m.agentName === undefined || activeAgents.some((a) => a.name === m.agentName))
         .map((m) => `[${m.role}${m.agentName ? ` - ${m.agentName}` : ''}]: ${m.content}`)
         .join('\n\n');
 
-      const agentOutputs = agents.map((a) => ({
-        name: a.name,
-        role: a.division,
-        output: messages
-          .filter((m) => m.agentName === a.name)
-          .map((m) => m.content)
-          .join('\n'),
-      })).filter((a) => a.output.length > 0);
+      const agentOutputs = getActiveReportAgentOutputs();
+
+      // Inject Memory Bank into the problem/context for the CEO report
+      const memoryBankContext = memoryBankContextRef.current;
+      let problemWithContext = `Project: ${projectName}. Team conversation with ${activeAgents.map(a => a.name).join(', ')}.\n\n${conversationText.substring(0, 4000)}`;
+      
+      if (memoryBankContext) {
+        problemWithContext += `\n\n--- PROJECT MEMORY BANK (Reference Context) ---\n${memoryBankContext}\n--- END MEMORY BANK ---`;
+      }
 
       const report = await CEOServiceInstance.generateExecutiveReport(
         provider,
         model,
-        `Project: ${projectName}. Team conversation with ${agents.map(a => a.name).join(', ')}.\n\n${conversationText.substring(0, 4000)}`,
+        problemWithContext,
         agentOutputs
       );
       setExecutiveReport(report);
@@ -163,34 +235,13 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
   };
 
   const handleDownloadPDF = () => {
-    const pdf = new jsPDF();
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    let y = 20;
-
-    pdf.setTextColor(124, 58, 237);
-    pdf.setFontSize(18);
-    pdf.text('YEOO OS - Executive Report', 20, y);
-    y += 10;
-    pdf.setTextColor(100, 100, 100);
-    pdf.setFontSize(10);
-    pdf.text(`Project: ${projectName}`, 20, y);
-    y += 6;
-    pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, y);
-    y += 10;
-    pdf.setDrawColor(124, 58, 237);
-    pdf.line(20, y, pageWidth - 20, y);
-    y += 8;
-
-    pdf.setTextColor(200, 200, 200);
-    pdf.setFontSize(9);
-    const lines = pdf.splitTextToSize(executiveReport, pageWidth - 40);
-    lines.forEach((line: string) => {
-      if (y > 280) { pdf.addPage(); y = 20; }
-      pdf.text(line, 20, y);
-      y += 5;
+    const agentOutputs = getActiveReportAgentOutputs();
+    downloadExecutivePDF({
+      projectName: projectName || teamName,
+      reportText: executiveReport,
+      agentOutputs,
+      totalMessages: messages.length,
     });
-
-    pdf.save(`executive-report-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -219,8 +270,14 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
             Save
           </button>
           <button
+            onClick={() => setShowMemoryBank(true)}
+            className="flex items-center gap-1.5 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-3 py-1.5 rounded-lg hover:bg-[#2D3548] transition-all text-xs"
+          >
+            🧠 Memory Bank
+          </button>
+          <button
             onClick={() => setShowSrdModal(true)}
-            disabled={messages.length === 0}
+            disabled={messages.length === 0 || reportSelectedAgents.size === 0}
             className="flex items-center gap-1.5 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-3 py-1.5 rounded-lg hover:bg-[#2D3548] transition-all text-xs disabled:opacity-50"
           >
             <ClipboardList size={14} />
@@ -228,7 +285,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
           </button>
           <button
             onClick={handleGenerateReport}
-            disabled={isGeneratingReport || messages.length === 0}
+            disabled={isGeneratingReport || messages.length === 0 || reportSelectedAgents.size === 0}
             className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg hover:from-purple-500 hover:to-indigo-500 transition-all text-xs disabled:opacity-50"
           >
             {isGeneratingReport ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
@@ -238,39 +295,65 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Agent Sidebar */}
+        {/* Agent Sidebar with Report Selection */}
         <div className="w-56 bg-[#0D1117] border-r border-[#1F2937] overflow-y-auto flex-shrink-0">
           <div className="p-3">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-1">
               <Users size={14} className="text-purple-400" />
               <span className="text-xs font-semibold text-gray-400 uppercase">Team</span>
             </div>
-            {agents.map((agent) => (
-              <button
-                key={agent.id}
-                onClick={() => setSelectedAgentId(agent.id)}
-                className={`w-full text-left p-2.5 rounded-lg mb-1 transition-all ${
-                  selectedAgentId === agent.id
-                    ? 'bg-purple-500/10 border border-purple-500/30 text-white'
-                    : 'hover:bg-[#1A1F2E] text-gray-400'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <img
-                    src={avatarService.getAvatarUrl(agent.id, agent.gender, agent.firstName, agent.lastName)}
-                    alt={agent.name}
-                    className="w-7 h-7 rounded-lg object-cover border border-[#2D3548]"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate flex items-center gap-1">
-                      {agent.name}
-                      {agent.id === 'ceo-alex' && <Crown size={10} className="text-yellow-500" />}
-                    </p>
-                    <p className="text-[10px] text-gray-500 truncate">{agent.division}</p>
-                  </div>
+            <p className="text-[10px] text-gray-500 mb-3">
+              <span className="text-purple-400 font-bold">{reportSelectedCount}</span>/{totalAgents} for reports
+            </p>
+            {agents.map((agent) => {
+              const isChatSelected = selectedAgentId === agent.id;
+              const isReportSelected = reportSelectedAgents.has(agent.id);
+              const hasMessages = messages.some((m) => m.agentName === agent.name);
+              return (
+                <div
+                  key={agent.id}
+                  className={`flex items-center gap-1 p-1.5 rounded-lg mb-1 transition-all ${
+                    isChatSelected ? 'bg-purple-500/10 border border-purple-500/30' : 'hover:bg-[#1A1F2E]'
+                  }`}
+                >
+                  {/* Report checkbox */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleReportAgent(agent.id);
+                    }}
+                    className={`flex-shrink-0 cursor-pointer transition-colors ${
+                      isReportSelected ? 'text-purple-400' : 'text-gray-600 hover:text-gray-400'
+                    }`}
+                    title={isReportSelected ? 'Remove from reports' : 'Add to reports'}
+                  >
+                    {isReportSelected ? <CheckSquare size={14} /> : <Square size={14} />}
+                  </button>
+
+                  {/* Agent click (select for chat) */}
+                  <button
+                    onClick={() => setSelectedAgentId(agent.id)}
+                    className="flex items-center gap-1.5 flex-1 min-w-0"
+                  >
+                    <img
+                      src={avatarService.getAvatarUrl(agent.id, agent.gender, agent.firstName, agent.lastName)}
+                      alt={agent.name}
+                      className="w-6 h-6 rounded-lg object-cover border border-[#2D3548]"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-medium truncate flex items-center gap-1">
+                        {agent.name}
+                        {agent.id === 'ceo-alex' && <Crown size={8} className="text-yellow-500" />}
+                      </p>
+                      <p className="text-[9px] text-gray-500 truncate">{agent.division}</p>
+                    </div>
+                    {hasMessages && (
+                      <span className="text-[8px] text-gray-600 bg-[#1A1F2E] px-1 rounded">💬</span>
+                    )}
+                  </button>
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -293,6 +376,9 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
                   <Users size={40} className="mx-auto mb-3 opacity-50" />
                   <p className="font-medium">{projectName}</p>
                   <p className="text-sm">Select an agent and start the conversation</p>
+                  <p className="text-[10px] text-gray-600 mt-2">
+                    ✓ Check agents in sidebar to include in reports
+                  </p>
                 </div>
               </div>
             ) : (
@@ -358,11 +444,23 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
         </div>
       </div>
 
-      {/* Executive Report Modal */}
+      {/* Memory Bank Modal */}
+      {showMemoryBank && (
+        <MemoryBankPanel
+          projectId={stableProjectId.current}
+          projectName={projectName || teamName}
+          onClose={() => {
+            setShowMemoryBank(false);
+            loadMemoryBankContext();
+          }}
+        />
+      )}
+
+      {/* SRD Modal — filter agents by report selection */}
       {showSrdModal && (
         <SRDModal
           projectName={projectName}
-          agents={agents}
+          agents={getActiveReportAgents()}
           messages={messages}
           onClose={() => setShowSrdModal(false)}
         />
@@ -374,7 +472,12 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
             <div className="flex items-center justify-between p-4 border-b border-[#1F2937]">
               <div className="flex items-center gap-2">
                 <FileText size={20} className="text-purple-400" />
-                <h2 className="text-lg font-bold text-white">Executive Report</h2>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  Executive Report
+                  <span className="text-xs font-normal text-gray-500 bg-[#1A1F2E] px-2 py-0.5 rounded-full">
+                    {getActiveReportAgents().length} agents
+                  </span>
+                </h2>
               </div>
               <div className="flex gap-2">
                 <button onClick={handleDownloadPDF} className="flex items-center gap-1.5 bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30 px-3 py-1.5 rounded-lg text-xs hover:bg-[#22C55E]/20 transition-all">

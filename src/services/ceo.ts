@@ -1,5 +1,4 @@
-import OllamaService from './ollama';
-import DeepSeekService from './deepseek';
+import { generateWithProvider } from './provider-router';
 import { avatarService } from './avatar';
 import type { OrgAgent, OrgChart, Provider } from '../types';
 
@@ -59,20 +58,11 @@ Think about what departments are needed. Common departments: Engineering, Design
   async generateOrganization(options: CEOOptions): Promise<OrgChart> {
     const { provider, model, problem } = options;
 
-    let response: string;
-    if (provider === 'ollama') {
-      response = await OllamaService.generate({
-        model,
-        prompt: this.buildCEOPrompt(problem),
-        temperature: 0.5,
-      });
-    } else {
-      response = await DeepSeekService.generate({
-        model,
-        prompt: this.buildCEOPrompt(problem),
-        temperature: 0.5,
-      });
-    }
+    const response = await generateWithProvider(provider, {
+      model,
+      prompt: this.buildCEOPrompt(problem),
+      temperature: 0.5,
+    });
 
     // Clean the response - remove markdown code blocks if present
     let jsonStr = response.trim();
@@ -196,11 +186,11 @@ Generate a professional executive report with:
 
 Format the report professionally with clear sections. Use markdown formatting.`;
 
-    if (provider === 'ollama') {
-      return await OllamaService.generate({ model, prompt: reportPrompt, temperature: 0.5 });
-    } else {
-      return await DeepSeekService.generate({ model, prompt: reportPrompt, temperature: 0.5 });
-    }
+    return await generateWithProvider(provider, {
+      model,
+      prompt: reportPrompt,
+      temperature: 0.5,
+    });
   }
 }
 

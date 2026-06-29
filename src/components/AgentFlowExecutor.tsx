@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { Agent, Provider } from '../types';
-import OllamaService from '../services/ollama';
-import DeepSeekService from '../services/deepseek';
+import { generateWithProvider } from '../services/provider-router';
 import { OrchestratorPDFGenerator } from './OrchestratorPDFGenerator';
 import { ArrowLeft, Loader } from 'lucide-react';
 
@@ -33,21 +32,12 @@ export const AgentFlowExecutor: React.FC<AgentFlowExecutorProps> = ({
   const [orchestratorResult, setOrchestratorResult] = useState<AgentResult | null>(null);
 
   const callGenerate = async (prompt: string, system: string): Promise<string> => {
-    if (provider === 'ollama') {
-      return await OllamaService.generate({
-        model,
-        prompt,
-        system,
-        temperature: 0.7,
-      });
-    } else {
-      return await DeepSeekService.generate({
-        model,
-        prompt,
-        system,
-        temperature: 0.7,
-      });
-    }
+    return await generateWithProvider(provider, {
+      model,
+      prompt,
+      system,
+      temperature: 0.7,
+    });
   };
 
   const executeAgentFlow = async () => {

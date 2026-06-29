@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { ExecutionNode, ExecutionResult, OrgAgent, Provider } from '../types';
-import OllamaService from '../services/ollama';
-import DeepSeekService from '../services/deepseek';
+import { generateWithProvider } from '../services/provider-router';
 import { CEOServiceInstance } from '../services/ceo';
 import { Play, Download, RotateCcw, ChevronRight, CheckCircle, XCircle, Loader2, FileText } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { downloadExecutivePDF } from '../services/pdfGenerator';
 
 interface ExecutionMonitorProps {
   orgName: string;
@@ -104,22 +103,12 @@ Previous analysis context: ${globalContext}
 
 Provide your expert analysis, recommendations, or deliverables based on your role. Be thorough and specific.`;
 
-        let response: string;
-        if (provider === 'ollama') {
-          response = await OllamaService.generate({
-            model: agent.model,
-            prompt: globalContext,
-            system: systemPrompt,
-            temperature: 0.7,
-          });
-        } else {
-          response = await DeepSeekService.generate({
-            model: agent.model,
-            prompt: globalContext,
-            system: systemPrompt,
-            temperature: 0.7,
-          });
-        }
+        const response = await generateWithProvider(provider, {
+          model: agent.model,
+          prompt: globalContext,
+          system: systemPrompt,
+          temperature: 0.7,
+        });
 
         clearInterval(progressInterval);
         nodes[nodeIdx].status = 'completed';
@@ -168,74 +157,22 @@ Provide your expert analysis, recommendations, or deliverables based on your rol
   };
 
   const handleDownloadPDF = () => {
-    const pdf = new jsPDF();
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    let y = 20;
+    if (!result.finalReport) return;
+    
+    const nodesAsAgentOutputs = result.nodes
+      .filter((n) => n.output)
+      .map((n) => ({
+        name: n.agentName,
+        role: n.status,
+        output: n.output || '',
+      }));
 
-    pdf.setFillColor(10, 10, 10);
-    pdf.rect(0, 0, pageWidth, 300, 'F');
-
-    pdf.setTextColor(124, 58, 237);
-    pdf.setFontSize(20);
-    pdf.text('YEOO OS - Executive Report', 20, y);
-    y += 12;
-
-    pdf.setTextColor(200, 200, 200);
-    pdf.setFontSize(10);
-    pdf.text(`Organization: ${orgName}`, 20, y);
-    y += 6;
-    pdf.text(`Problem: ${problem}`, 20, y);
-    y += 6;
-    pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, y);
-    y += 12;
-
-    pdf.setDrawColor(124, 58, 237);
-    pdf.line(20, y, pageWidth - 20, y);
-    y += 8;
-
-    result.nodes.forEach((node) => {
-      if (y > 270) { pdf.addPage(); y = 20; }
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(12);
-      pdf.text(`${node.emoji} ${node.agentName} [${node.status}]`, 20, y);
-      y += 6;
-      if (node.output) {
-        pdf.setTextColor(180, 180, 180);
-        pdf.setFontSize(9);
-        const lines = pdf.splitTextToSize(node.output, pageWidth - 40);
-        lines.forEach((line: string) => {
-          if (y > 280) { pdf.addPage(); y = 20; }
-          pdf.text(line, 25, y);
-          y += 5;
-        });
-      }
-      y += 8;
+    downloadExecutivePDF({
+      projectName: orgName,
+      reportText: `# Organization Execution Report\n\n## Problem\n${problem}\n\n${result.finalReport}`,
+      agentOutputs: nodesAsAgentOutputs,
+      totalMessages: result.nodes.length,
     });
-
-    // Include Executive Report in PDF
-    if (result.finalReport) {
-      if (y > 250) { pdf.addPage(); y = 20; }
-      
-      pdf.setTextColor(124, 58, 237);
-      pdf.setFontSize(16);
-      pdf.text('EXECUTIVE REPORT', 20, y);
-      y += 10;
-      
-      pdf.setDrawColor(124, 58, 237);
-      pdf.line(20, y, pageWidth - 20, y);
-      y += 8;
-      
-      pdf.setTextColor(220, 220, 220);
-      pdf.setFontSize(9);
-      const reportLines = pdf.splitTextToSize(result.finalReport, pageWidth - 40);
-      reportLines.forEach((line: string) => {
-        if (y > 280) { pdf.addPage(); y = 20; }
-        pdf.text(line, 20, y);
-        y += 5;
-      });
-    }
-
-    pdf.save(`yeoo-os-report-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const getAgentAvatar = (agentId: string): string | undefined => {
