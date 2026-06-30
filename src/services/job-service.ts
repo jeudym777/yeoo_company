@@ -30,7 +30,68 @@ export interface JobSearchFilters {
 const STORAGE_KEY = 'yeoo_job_results';
 
 class JobService {
-  async searchJobs(filters: JobSearchFilters): Promise<JobOpportunity[]> {
+  async searchJobs(filters: JobSearchFilters, sources: string[] = ['indeed', 'computrabajo', 'linkedin', 'empresas_cr']): Promise<JobOpportunity[]> {
+    try {
+      // Phase 1: Try real web scraping via Cloudflare Worker
+      const scrapeRes = await fetch('/api/scrape-jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          keywords: filters.keywords || 'software engineer',
+          country: filters.country || 'cr',
+          sources,
+          max_results: 30,
+        }),
+      });
+
+      let scrapeJobs: JobOpportunity[] = [];
+
+      if (scrapeRes.ok) {
+        const scrapeData = await scrapeRes.json();
+        scrapeJobs = (scrapeData.results || []).map((j: any) => ({
+          id: j.id || `${Date.now()}-${Math.random()}`,
+          title: j.title || '',
+          company: j.company || 'Unknown',
+          location: j.location || '',
+          salary_min: null,
+          salary_max: null,
+          description: j.description || '',
+          url: j.url || '',
+          created: j.published || '',
+          category: '',
+          full_description: j.description || '',
+          salary: j.salary || '',
+          source: j.source || 'scraper',
+          saved: false,
+        }));
+      }
+
+      // Phase 2: Try Adzuna as backup (only if you want extra results)
+      let adzunaJobs: JobOpportunity[] = [];
+      try {
+        adzunaJobs = await this.searchAdzuna(filters);
+      } catch {
+        // Adzuna fallback — silent fail
+      }
+
+      // Merge: scraper first (real + more relevant), then Adzuna
+      const allIds = new Set(scrapeJobs.map((j: any) => j.id));
+      const uniqueAdzuna = adzunaJobs.filter((j: any) => !allIds.has(j.id));
+      const allJobs = [...scrapeJobs, ...uniqueAdzuna].slice(0, 40);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allJobs));
+      return allJobs;
+    } catch (err) {
+      console.warn('JobService.searchJobs error:', err);
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      } catch {
+        return [];
+      }
+    }
+  }
+
+  private async searchAdzuna(filters: JobSearchFilters): Promise<JobOpportunity[]> {
     try {
       // Try Cloudflare Function first (production)
       let res = await fetch('/api/jobs', {
@@ -68,6 +129,7 @@ class JobService {
 
       const data = await res.json();
       const jobs: JobOpportunity[] = (data.results || []).map((j: any) => ({
+        source: 'adzuna',
         id: j.id,
         title: j.title || '',
         company: typeof j.company === 'object' ? (j.company?.display_name || 'Unknown') : (j.company || 'Unknown'),
