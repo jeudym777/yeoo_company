@@ -248,8 +248,6 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
   const handleContinueWithAnswers = async () => {
     setStatus('re_analyzing');
     try {
-      // Persist Q&A into the Memory Bank (activeContext) so agents don't repeat questions
-      await persistQaToMemory();
       const finalMsgs = await runFinalAnalysis(enrichedMessages, questions);
       setEnrichedMessages(finalMsgs);
       setStatus('generating');
@@ -257,40 +255,6 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Final analysis failed');
       setStatus('error');
-    }
-  };
-
-  const persistQaToMemory = async () => {
-    const answeredQs = questions.filter((q) => q.answer.trim());
-    const allQs = questions.filter((q) => !q.answer.trim());
-    if (answeredQs.length === 0 && allQs.length === 0) return;
-
-    try {
-      const { memoryBankService } = await import('../services/memoryBank');
-      // We need the project ID — TeamChat passes it as projectName, we store it in the memo
-      // Use the project name + agent names as a stable key
-      const projectId = `proj-${projectName.replace(/\s+/g, '-').toLowerCase()}`;
-      
-      // Get current activeContext or create it
-      const docs = await memoryBankService.getAllDocuments(projectId);
-      const activeDoc = docs.find((d) => d.docType === 'activeContext');
-      let currentContext = activeDoc?.content || '';
-
-      // Append Q&A as a new section
-      const timestamp = new Date().toLocaleDateString('es-CR');
-      let qaSection = `\n\n## SRD Q&A Session (${timestamp})\n`;
-      
-      if (answeredQs.length > 0) {
-        qaSection += answeredQs.map((q) => `- **${q.agentName}**: ${q.question}\n  - *Respuesta*: ${q.answer}`).join('\n');
-      }
-      if (allQs.length > 0) {
-        qaSection += `\n\n*Preguntas sin responder (se usaron suposiciones profesionales):*\n`;
-        qaSection += allQs.map((q) => `- ${q.agentName}: ${q.question}`).join('\n');
-      }
-
-      await memoryBankService.saveDocument(projectId, 'activeContext', currentContext + qaSection);
-    } catch {
-      // Non-blocking — if Memory Bank save fails, document still generates
     }
   };
 
