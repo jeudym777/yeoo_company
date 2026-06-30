@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Agent, Provider } from '../types';
 import { jobService, type JobOpportunity, type JobSearchFilters } from '../services/job-service';
-import { Search, Play, Square, Download, Loader2, ExternalLink, Star, Save, Building2, MapPin, DollarSign, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Search, Play, Square, Download, Loader2, ExternalLink, Star, Save, Building2, MapPin, DollarSign, CheckCircle, XCircle, RefreshCw, CheckSquare, Square as SquareIcon, Globe, Server } from 'lucide-react';
 
 interface JobOpportunityPanelProps {
   projectName: string;
@@ -43,6 +43,17 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
     results_per_page: 10,
     max_days_old: 7,
   });
+  const [selectedSources, setSelectedSources] = useState<Set<string>>(
+    new Set(['indeed', 'computrabajo', 'linkedin', 'empresas_cr', 'adzuna'])
+  );
+
+  const toggleSource = (source: string) => {
+    setSelectedSources((prev) => {
+      const next = new Set(prev);
+      next.has(source) ? next.delete(source) : next.add(source);
+      return next;
+    });
+  };
   const [jobs, setJobs] = useState<JobOpportunity[]>([]);
   const [analyzedJobs, setAnalyzedJobs] = useState<JobOpportunity[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -55,10 +66,19 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
     setStatus('searching');
     setError(null);
     try {
-      const results = await jobService.searchJobs({
-        ...filters,
-        keywords: filters.keywords || 'software developer',
-      });
+      const sources = Array.from(selectedSources);
+      if (sources.length === 0) {
+        setError('Selecciona al menos una fuente de búsqueda.');
+        setStatus('error');
+        return;
+      }
+      const results = await jobService.searchJobs(
+        {
+          ...filters,
+          keywords: filters.keywords || 'software developer',
+        },
+        Array.from(selectedSources)
+      );
       setJobs(results);
       if (results.length === 0) {
         setError('No se encontraron ofertas. Prueba con otras keywords.');
@@ -157,6 +177,27 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
               {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
             </select>
           </div>
+          <div className="flex gap-2 pt-3 border-t border-slate-700">
+            {[
+              { key: 'indeed', label: '🌐 Indeed', icon: <Globe size={10} />, group: 'Scraping Real' },
+              { key: 'computrabajo', label: '💼 Computrabajo', icon: <Globe size={10} />, group: 'Scraping Real' },
+              { key: 'linkedin', label: '🔷 LinkedIn', icon: <Globe size={10} />, group: 'Scraping Real' },
+              { key: 'empresas_cr', label: '🏢 Empresas CR', icon: <Building2 size={10} />, group: 'Scraping Real' },
+              { key: 'adzuna', label: '📡 Adzuna API', icon: <Server size={10} />, group: 'API' },
+            ].map(({ key, label, group }) => (
+              <button
+                key={key}
+                onClick={() => toggleSource(key)}
+                className={`flex items-center gap-1.5 p-2 rounded-lg border text-xs transition whitespace-nowrap ${
+                  selectedSources.has(key)
+                    ? 'bg-purple-500/10 border-purple-500/30 text-purple-300'
+                    : 'bg-[#1A1F2E] border-[#2D3548] text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {selectedSources.has(key) ? <CheckSquare size={12} /> : <SquareIcon size={12} />} {label}
+              </button>
+            ))}
+          </div>
           <div>
             <label className="block text-[10px] text-slate-500 mb-1">Publicado en</label>
             <select
@@ -189,7 +230,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
         {(status === 'searching' || status === 'analyzing') && (
           <div className="px-4 py-2 bg-purple-500/10 border-b border-purple-500/20 text-xs text-purple-300 flex items-center gap-2">
             <Loader2 size={14} className="animate-spin" />
-            {status === 'searching' && 'Buscando ofertas en Adzuna...'}
+            {status === 'searching' && `Buscando ofertas en ${Array.from(selectedSources).join(', ')}...`}
             {status === 'analyzing' && `Analizando ofertas con agentes... (${analyzingIndex + 1}/${jobs.length})`}
           </div>
         )}
