@@ -68,7 +68,17 @@ class JobService {
 
       const data = await res.json();
       const jobs: JobOpportunity[] = (data.results || []).map((j: any) => ({
-        ...j,
+        id: j.id,
+        title: j.title || '',
+        company: typeof j.company === 'object' ? (j.company?.display_name || 'Unknown') : (j.company || 'Unknown'),
+        location: typeof j.location === 'object' ? (j.location?.display_name || 'Remote') : (j.location || 'Remote'),
+        salary_min: j.salary_min || null,
+        salary_max: j.salary_max || null,
+        description: (j.description || '').substring(0, 1000),
+        url: j.redirect_url || '',
+        created: j.created || '',
+        category: j.category?.label || '',
+        full_description: j.description || '',
         saved: false,
       }));
 
