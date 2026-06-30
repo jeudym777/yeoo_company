@@ -138,8 +138,8 @@ class SrdGenerator {
   }
 
   private border() { return { top: { style: BorderStyle.SINGLE, size: 1, color: '7C3AED' }, bottom: { style: BorderStyle.SINGLE, size: 1, color: '7C3AED' }, left: { style: BorderStyle.SINGLE, size: 1, color: '7C3AED' }, right: { style: BorderStyle.SINGLE, size: 1, color: '7C3AED' } }; }
-  private hCell(text: string, w = 25): TableCell { return new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 20, font: 'Calibri' })], alignment: AlignmentType.CENTER, spacing: { before: 80, after: 80 } })], shading: { type: ShadingType.SOLID, color: '7C3AED', fill: '7C3AED' }, borders: this.border(), width: { size: w, type: WidthType.PERCENTAGE } }); }
-  private cCell(text: string, w = 25, bold = false): TableCell { return new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, size: 18, font: 'Calibri', bold })], spacing: { before: 80, after: 80 } })], borders: this.border(), width: { size: w, type: WidthType.PERCENTAGE } }); }
+  private hCell(text: string, w = 25): TableCell { return new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 20, font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.SOLID, color: '7C3AED', fill: '7C3AED' }, margins: { top: 150, bottom: 150, left: 80, right: 80 }, borders: this.border(), width: { size: w, type: WidthType.PERCENTAGE } }); }
+  private cCell(text: string, w = 25, bold = false): TableCell { return new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, size: 18, font: 'Calibri', bold })], spacing: { line: 280 } })], margins: { top: 120, bottom: 120, left: 80, right: 80 }, borders: this.border(), width: { size: w, type: WidthType.PERCENTAGE } }); }
 
   async generateSrd(input: SrdInput): Promise<Blob> {
     const opts = { ...DEFAULT_OPTS, ...(input.options || {}) };
