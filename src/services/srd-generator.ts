@@ -33,12 +33,8 @@ const DEFAULT_OPTS: SrdOptions = {
   includeTimeEstimate: true,
   includeAgentAnalysis: true,
   includeConclusion: true,
-  includeBarChart: true,
-  includeRiskMatrix: true,
-  includeBudgetPie: false,
   maxReqsPerAgent: 8,
   maxAnalysisChars: 2000,
-  outputFormat: 'docx',
 };
 
 class SrdGenerator {
