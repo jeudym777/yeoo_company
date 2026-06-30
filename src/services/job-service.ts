@@ -32,7 +32,8 @@ const STORAGE_KEY = 'yeoo_job_results';
 class JobService {
   async searchJobs(filters: JobSearchFilters): Promise<JobOpportunity[]> {
     try {
-      const res = await fetch('/api/jobs', {
+      // Try Cloudflare Function first (production)
+      let res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -42,6 +43,17 @@ class JobService {
           max_days_old: filters.max_days_old || 7,
         }),
       });
+
+      // If Cloudflare Function fails (404 in dev), fall back to direct Adzuna call
+      if (!res.ok && (res.status === 404 || res.status === 500)) {
+        const appId = '21a60a8d';
+        const apiKey = '5fd41eb6a65b65452d243a33cdb57d4c';
+        const directUrl = `https://api.adzuna.com/v1/api/jobs/${filters.country || 'us'}/search/1?app_id=${appId}&app_key=${apiKey}&results_per_page=${filters.results_per_page || 10}&what=${encodeURIComponent(filters.keywords || 'python')}&max_days_old=${filters.max_days_old || 7}&content-type=application/json`;
+        
+        res = await fetch(directUrl, {
+          headers: { 'Accept': 'application/json' },
+        });
+      }
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
