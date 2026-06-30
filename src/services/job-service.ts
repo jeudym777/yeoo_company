@@ -44,20 +44,26 @@ class JobService {
         }),
       });
 
-      // If Cloudflare Function fails (404 in dev), fall back to direct Adzuna call
-      if (!res.ok && (res.status === 404 || res.status === 500)) {
+      // If /api/jobs fails (404 in dev), fall back to direct Adzuna call
+      if (!res.ok && res.status !== 200) {
         const appId = '21a60a8d';
         const apiKey = '5fd41eb6a65b65452d243a33cdb57d4c';
-        const directUrl = `https://api.adzuna.com/v1/api/jobs/${filters.country || 'us'}/search/1?app_id=${appId}&app_key=${apiKey}&results_per_page=${filters.results_per_page || 10}&what=${encodeURIComponent(filters.keywords || 'python')}&max_days_old=${filters.max_days_old || 7}&content-type=application/json`;
+        const country = filters.country || 'us';
+        const what = encodeURIComponent(filters.keywords || 'software engineer');
+        const results = filters.results_per_page || 10;
+        const days = filters.max_days_old || 7;
+        const directUrl = `https://api.adzuna.com/v1/api/jobs/${country}/search/1?app_id=${appId}&app_key=${apiKey}&results_per_page=${results}&what=${what}&max_days_old=${days}`;
         
+        console.log('Falling back to direct Adzuna call:', directUrl);
         res = await fetch(directUrl, {
           headers: { 'Accept': 'application/json' },
         });
       }
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `API error ${res.status}`);
+        const text = await res.text();
+        console.error('Adzuna response status:', res.status, text.substring(0, 200));
+        throw new Error(`Adzuna API returned ${res.status}. Check your API credentials or country code.`);
       }
 
       const data = await res.json();
