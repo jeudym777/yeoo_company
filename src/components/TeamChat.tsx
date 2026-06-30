@@ -12,6 +12,7 @@ import { downloadExecutivePDF } from '../services/pdfGenerator';
 import { Send, ArrowLeft, Download, FileText, Save, Loader2, Users, Crown, ClipboardList, CheckSquare, Square, Trash2 } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { SRDModal } from './SRDModal';
+import { JobOpportunityPanel } from './JobOpportunityPanel';
 import MemoryBankPanel from './MemoryBankPanel';
 import { memoryBankService } from '../services/memoryBank';
 
@@ -50,6 +51,7 @@ export const TeamChat: React.FC<TeamChatProps> = ({
   const [executiveReport, setExecutiveReport] = useState('');
   const [showSrdModal, setShowSrdModal] = useState(false);
   const [showMemoryBank, setShowMemoryBank] = useState(false);
+  const [showJobPanel, setShowJobPanel] = useState(false);
   const stableProjectId = useRef(projectId || `proj-${Date.now()}`);
   const memoryBankContextRef = useRef('');
 
@@ -295,6 +297,12 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
             🧠 Memory Bank
           </button>
           <button
+            onClick={() => setShowJobPanel(true)}
+            className="flex items-center gap-1.5 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-3 py-1.5 rounded-lg hover:bg-[#2D3548] transition-all text-xs"
+          >
+            💼 Jobs
+          </button>
+          <button
             onClick={() => setShowSrdModal(true)}
             disabled={messages.length === 0 || reportSelectedAgents.size === 0}
             className="flex items-center gap-1.5 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-3 py-1.5 rounded-lg hover:bg-[#2D3548] transition-all text-xs disabled:opacity-50"
@@ -494,6 +502,19 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
             setShowMemoryBank(false);
             loadMemoryBankContext();
           }}
+        />
+      )}
+
+      {/* Job Opportunity Panel */}
+      {showJobPanel && (
+        <JobOpportunityPanel
+          projectName={projectName}
+          agents={agents}
+          provider={provider}
+          model={model}
+          messages={messages}
+          memoryBankContext={memoryBankContextRef.current}
+          onClose={() => setShowJobPanel(false)}
         />
       )}
 

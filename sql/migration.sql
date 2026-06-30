@@ -72,6 +72,23 @@ CREATE TABLE IF NOT EXISTS clients (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Saved job opportunities table (Job Opportunity Analyzer)
+CREATE TABLE IF NOT EXISTS saved_opportunities (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL DEFAULT '',
+  company TEXT NOT NULL DEFAULT '',
+  location TEXT NOT NULL DEFAULT '',
+  salary_min INTEGER,
+  salary_max INTEGER,
+  description TEXT NOT NULL DEFAULT '',
+  url TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL DEFAULT '',
+  match_score INTEGER NOT NULL DEFAULT 0,
+  ceo_analysis TEXT NOT NULL DEFAULT '',
+  tech_analysis TEXT NOT NULL DEFAULT '',
+  saved_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Index for fast lookups
 CREATE INDEX IF NOT EXISTS idx_messages_project_id ON messages(project_id);
 CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at DESC);
@@ -82,6 +99,7 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agent_contexts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE memory_bank_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE saved_opportunities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 
 -- Allow public access (anon key) to read/write 
@@ -89,3 +107,4 @@ CREATE POLICY "Allow all on agent_contexts" ON agent_contexts FOR ALL USING (tru
 CREATE POLICY "Allow all on memory_bank_documents" ON memory_bank_documents FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on agents" ON agents FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on clients" ON clients FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all on saved_opportunities" ON saved_opportunities FOR ALL USING (true) WITH CHECK (true);
