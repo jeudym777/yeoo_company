@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Agent, Provider } from '../types';
 import { YEOO_DIVISIONS, getAgentsByDivision } from '../agents_yeoo';
 import { avatarService } from '../services/avatar';
 import { storageService } from '../services/storage';
 import { agentService } from '../services/agent-service';
+import { accessCodeService } from '../services/access-code';
 import { AgentContextModal } from './AgentContextModal';
 import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog, Building2 } from 'lucide-react';
 import { AgentManagerModal } from './AgentManagerModal';
 import { ClientsPanel } from './ClientsPanel';
+import { AccessCodeModal } from './AccessCodeModal';
 
 interface DashboardProps {
   provider: Provider;
@@ -34,6 +36,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [contextBadges, setContextBadges] = useState<Record<string, boolean>>({});
   const [showAgentManager, setShowAgentManager] = useState(false);
   const [showClients, setShowClients] = useState(false);
+  const [showAccessModal, setShowAccessModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   // Load agents from Supabase (with fallback to agents_yeoo.ts)
   useEffect(() => {
@@ -82,10 +86,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
     );
   };
 
+  const handleRequireAccess = useCallback((action: string, callback: () => void) => {
+    const allowed = accessCodeService.requireAccess(() => {
+      setPendingAction(action);
+      setShowAccessModal(true);
+    });
+    if (allowed) callback();
+  }, []);
+
+  const handleAccessGranted = useCallback(() => {
+    setShowAccessModal(false);
+    if (pendingAction === 'clients') setShowClients(true);
+    else if (pendingAction === 'agents') { agentService.clearCache(); setShowAgentManager(true); }
+    else if (pendingAction === 'projects') onProjectsClick();
+    setPendingAction(null);
+  }, [pendingAction, onProjectsClick]);
+
   const handleCreateTeam = () => {
-    if (selectedAgents.length > 0) {
-      onTeamSelect(selectedAgents, teamName || `Team ${Date.now()}`);
-    }
+    handleRequireAccess('create-team', () => {
+      if (selectedAgents.length > 0) {
+        onTeamSelect(selectedAgents, teamName || `Team ${Date.now()}`);
+      }
+    });
   };
 
   return (
@@ -106,21 +128,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowClients(true)}
+              onClick={() => handleRequireAccess('clients', () => setShowClients(true))}
               className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
             >
               <Building2 size={16} />
               Clients
             </button>
             <button
-              onClick={() => { agentService.clearCache(); setShowAgentManager(true); }}
+              onClick={() => handleRequireAccess('agents', () => { agentService.clearCache(); setShowAgentManager(true); })}
               className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
             >
               <UserCog size={16} />
               Agents
             </button>
             <button
-              onClick={onProjectsClick}
+              onClick={() => handleRequireAccess('projects', () => onProjectsClick())}
               className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
             >
               <FolderOpen size={16} />
@@ -267,6 +289,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         )}
 
         {/* Agent Manager Modal */}
+        {showAccessModal && (
+          <AccessCodeModal
+            onClose={() => { setShowAccessModal(false); setPendingAction(null); }}
+            onGranted={handleAccessGranted}
+          />
+        )}
         {showAgentManager && (
           <AgentManagerModal
             onClose={() => setShowAgentManager(false)}
