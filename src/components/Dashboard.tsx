@@ -95,8 +95,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-xl">
-                🧠
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
+                <img src="/logoYeoo.png" alt="YEOO OS" className="w-8 h-8 object-contain" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">YEOO <span className="text-purple-400">OS</span></h1>

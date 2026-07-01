@@ -102,18 +102,23 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-[95vw] max-w-5xl h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
-          <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              🧠 Memory Bank
-              <span className="text-sm font-normal text-slate-400 ml-2">
-                — {projectName}
-              </span>
-            </h2>
-            {lastUpdated && (
-              <p className="text-xs text-slate-500 mt-1">
-                Last saved: {lastUpdated}
-              </p>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center flex-shrink-0">
+              <img src="/logoYeoo.png" alt="YEOO OS" className="w-6 h-6 object-contain" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                Memory Bank
+                <span className="text-sm font-normal text-slate-400 ml-2">
+                  — {projectName}
+                </span>
+              </h2>
+              {lastUpdated && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Last saved: {lastUpdated}
+                </p>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}

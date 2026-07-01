@@ -294,7 +294,8 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
             onClick={() => setShowMemoryBank(true)}
             className="flex items-center gap-1.5 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-3 py-1.5 rounded-lg hover:bg-[#2D3548] transition-all text-xs"
           >
-            🧠 Memory Bank
+            <img src="/logoYeoo.png" alt="" className="w-4 h-4 object-contain" />
+            Memory Bank
           </button>
           <button
             onClick={() => setShowJobPanel(true)}
