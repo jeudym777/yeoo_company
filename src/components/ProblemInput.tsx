@@ -39,12 +39,12 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-2xl">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-red-900 600 flex items-center justify-center text-2xl">
               🧠
             </div>
           </div>
           <h1 className="text-4xl font-bold text-white">
-            YEOO <span className="text-purple-400">OS</span>
+            YEOO <span className="text-red-400">OS</span>
           </h1>
           <p className="text-gray-400 text-lg max-w-md mx-auto">
             Describe your business problem and I'll build an AI organization to solve it.
@@ -54,7 +54,7 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({
         {/* Problem Input */}
         <div className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 space-y-4">
           <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Sparkles size={16} className="text-purple-400" />
+            <Sparkles size={16} className="text-red-400" />
             <span>What are we building today?</span>
           </div>
 
@@ -63,7 +63,7 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({
             onChange={(e) => setProblem(e.target.value)}
             placeholder="Describe your project, business idea, or problem in detail..."
             rows={5}
-            className="w-full bg-[#0A0A0A] border border-[#1F2937] rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none transition-all"
+            className="w-full bg-[#0A0A0A] border border-[#1F2937] rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none transition-all"
             disabled={isGenerating}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -80,7 +80,7 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({
                 <button
                   key={i}
                   onClick={() => setProblem(ex)}
-                  className="text-xs bg-[#0A0A0A] border border-[#1F2937] text-gray-400 px-3 py-1.5 rounded-lg hover:border-purple-500 hover:text-purple-300 transition-all"
+                  className="text-xs bg-[#0A0A0A] border border-[#1F2937] text-gray-400 px-3 py-1.5 rounded-lg hover:border-red-500 hover:text-red-300 transition-all"
                 >
                   {ex}
                 </button>
@@ -93,7 +93,7 @@ export const ProblemInput: React.FC<ProblemInputProps> = ({
             <button
               onClick={handleSubmit}
               disabled={!problem.trim() || isGenerating}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:from-gray-700 disabled:to-gray-700 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all text-lg"
+              className="flex-1 bg-gradient-to-r from-red-600 to-red-900 600 hover:from-red-500 hover:to-red-900 500 disabled:from-gray-700 disabled:to-gray-700 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all text-lg"
             >
               {isGenerating ? (
                 <>

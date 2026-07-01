@@ -95,11 +95,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center">
                 <img src="/logoYeoo.png" alt="YEOO OS" className="w-8 h-8 object-contain" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">YEOO <span className="text-purple-400">OS</span></h1>
+                <h1 className="text-3xl font-bold text-white">YEOO <span className="text-red-400">OS</span></h1>
                 <p className="text-gray-400 text-sm mt-0.5">Agent Dashboard</p>
               </div>
             </div>
@@ -139,21 +139,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-4">
             <div className="flex items-center gap-2">
-              <Users size={18} className="text-purple-400" />
+              <Users size={18} className="text-red-400" />
               <span className="text-sm text-gray-400">Total Agents</span>
             </div>
           <p className="text-2xl font-bold text-white mt-1">{agents.length}</p>
           </div>
           <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-4">
             <div className="flex items-center gap-2">
-              <Filter size={18} className="text-purple-400" />
+              <Filter size={18} className="text-red-400" />
               <span className="text-sm text-gray-400">Divisions</span>
             </div>
             <p className="text-2xl font-bold text-white mt-1">{YEOO_DIVISIONS.length}</p>
           </div>
           <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-4">
             <div className="flex items-center gap-2">
-              <Check size={18} className="text-[#22C55E]" />
+              <Check size={18} className="text-red-400" />
               <span className="text-sm text-gray-400">Selected</span>
             </div>
             <p className="text-2xl font-bold text-white mt-1">{selectedAgents.length}</p>
@@ -169,7 +169,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               placeholder="Search agents by name, skill, or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#111827] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+              className="w-full bg-[#111827] border border-[#1F2937] rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
             />
           </div>
 
@@ -178,7 +178,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               onClick={() => setSelectedDivision(null)}
               className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all text-sm ${
                 selectedDivision === null
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-red-600 text-white'
                   : 'bg-[#1A1F2E] text-gray-400 border border-[#2D3548] hover:bg-[#2D3548]'
               }`}
             >
@@ -190,7 +190,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onClick={() => setSelectedDivision(division)}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all text-sm ${
                   selectedDivision === division
-                    ? 'bg-purple-600 text-white'
+                    ? 'bg-red-600 text-white'
                     : 'bg-[#1A1F2E] text-gray-400 border border-[#2D3548] hover:bg-[#2D3548]'
                 }`}
               >
@@ -209,9 +209,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <button
                 key={agent.id}
                 onClick={() => toggleAgent(agent)}
-                className={`text-left bg-[#111827] border rounded-xl p-4 transition-all duration-200 hover:border-purple-500/50 ${
+                className={`text-left bg-[#111827] border rounded-xl p-4 transition-all duration-200 hover:border-red-500/50 ${
                   isSelected
-                    ? 'border-purple-500 ring-1 ring-purple-500/30 bg-purple-500/5'
+                    ? 'border-red-500 ring-1 ring-red-500/30 bg-red-500/5'
                     : 'border-[#1F2937]'
                 }`}
               >
@@ -222,13 +222,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     className="w-10 h-10 rounded-lg object-cover border border-[#2D3548]"
                   />
                   {isSelected && (
-                    <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center">
                       <Check size={14} className="text-white" />
                     </div>
                   )}
                 </div>
                 <h3 className="font-bold text-white text-sm">{agent.name}</h3>
-                <p className="text-xs text-purple-400 mb-2">{agent.firstName} {agent.lastName} · {agent.division}</p>
+                <p className="text-xs text-red-400 mb-2">{agent.firstName} {agent.lastName} · {agent.division}</p>
                 <p className="text-xs text-gray-400 line-clamp-2 mb-3">{agent.description}</p>
                 <div className="flex gap-1 mb-2">
                   <button
@@ -236,7 +236,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg border transition-all ${
                       hasContext
                         ? 'text-green-400 bg-green-500/10 border-green-500/30'
-                        : 'bg-[#1A1F2E] text-gray-400 border-[#2D3548] hover:text-purple-400 hover:bg-purple-500/10'
+                        : 'bg-[#1A1F2E] text-gray-400 border-[#2D3548] hover:text-red-400 hover:bg-red-500/10'
                     }`}
                   >
                     <Settings2 size={10} />
@@ -293,14 +293,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="max-w-7xl mx-auto flex items-center gap-4">
               <div className="flex-1 flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <Users size={18} className="text-purple-400" />
+                  <Users size={18} className="text-red-400" />
                   <span className="text-white font-medium">{selectedAgents.length} agents selected</span>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {selectedAgents.map((a) => (
                     <span
                       key={a.id}
-                      className="text-xs bg-purple-500/10 text-purple-400 px-2 py-1 rounded-lg border border-purple-500/20"
+                      className="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded-lg border border-red-500/20"
                     >
                       {a.emoji} {a.name}
                     </span>
@@ -312,11 +312,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 placeholder="Team name (optional)"
-                className="bg-[#111827] border border-[#1F2937] rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500 w-48"
+                className="bg-[#111827] border border-[#1F2937] rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-red-500 w-48"
               />
               <button
                 onClick={handleCreateTeam}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all"
+                className="bg-gradient-to-r from-red-600 to-red-900 hover:from-red-500 hover:to-red-800 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all"
               >
                 Create Team
                 <ArrowRight size={16} />

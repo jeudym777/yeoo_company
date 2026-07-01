@@ -33,7 +33,6 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
   }, [loadDocuments]);
 
   const switchTab = (docType: MemoryBankDocType) => {
-    // Save current content to local state before switching
     setDocuments((prev) =>
       prev.map((d) => (d.docType === activeDocType ? { ...d, content } : d))
     );
@@ -59,7 +58,6 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
   };
 
   const handleExportMarkdown = () => {
-    // Ensure current content is reflected
     const allDocs = documents.map((d) =>
       d.docType === activeDocType ? { ...d, content } : d
     );
@@ -71,24 +69,16 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
   };
 
   const renderMarkdownPreview = (md: string) => {
-    // Simple Markdown to HTML conversion
     let html = md
-      // Headers
-      .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mb-2 mt-4 text-cyan-400">$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mb-3 mt-6 text-cyan-300">$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold mb-4 mt-8 text-cyan-200">$1</h1>')
-      // Bold
+      .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mb-2 mt-4 text-red-400">$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mb-3 mt-6 text-red-300">$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold mb-4 mt-8 text-red-200">$1</h1>')
       .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-slate-200">$1</strong>')
-      // Italic
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // Lists
       .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc text-slate-400">$1</li>')
-      // Comments preserved as muted text
       .replace(/<!--(.+?)-->/g, '<span class="text-slate-600 italic">← $1</span>')
-      // Line breaks
       .replace(/\n\n/g, '<br/><br/>')
       .replace(/\n/g, '<br/>');
-
     return html;
   };
 
@@ -103,7 +93,7 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center flex-shrink-0">
               <img src="/logoYeoo.png" alt="YEOO OS" className="w-6 h-6 object-contain" />
             </div>
             <div>
@@ -137,7 +127,7 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
               onClick={() => switchTab(dt)}
               className={`px-4 py-2 text-sm rounded-t-lg font-medium whitespace-nowrap transition cursor-pointer ${
                 activeDocType === dt
-                  ? 'bg-slate-800 text-cyan-400 border-t border-x border-slate-700'
+                  ? 'bg-slate-800 text-red-400 border-t border-x border-slate-700'
                   : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
               }`}
             >
@@ -149,7 +139,7 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
         {/* Content area */}
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full"></div>
+            <div className="animate-spin w-8 h-8 border-2 border-red-400 border-t-transparent rounded-full"></div>
           </div>
         ) : (
           <div className="flex-1 flex overflow-hidden">
@@ -161,7 +151,7 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
                   setContent(e.target.value);
                   setSaved(false);
                 }}
-                className="flex-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-4 text-slate-300 font-mono text-sm resize-none focus:outline-none focus:border-cyan-500/50"
+                className="flex-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-4 text-slate-300 font-mono text-sm resize-none focus:outline-none focus:border-red-500/50"
                 placeholder="Write Markdown here..."
                 spellCheck={false}
               />
@@ -188,7 +178,7 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
               onClick={() => setShowPreview(!showPreview)}
               className={`px-4 py-2 text-sm rounded-lg font-medium transition cursor-pointer ${
                 showPreview
-                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                   : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200'
               }`}
             >
@@ -215,7 +205,7 @@ const MemoryBankPanel: React.FC<MemoryBankPanelProps> = ({ projectId, projectNam
               className={`px-6 py-2 text-sm rounded-lg font-bold transition cursor-pointer ${
                 saved
                   ? 'bg-green-600 text-white'
-                  : 'bg-cyan-600 text-white hover:bg-cyan-500'
+                  : 'bg-red-600 text-white hover:bg-red-500'
               } disabled:opacity-50`}
             >
               {saving ? '⏳ Saving...' : saved ? '✓ Saved!' : '💾 Save to Supabase'}

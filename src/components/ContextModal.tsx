@@ -35,7 +35,7 @@ export const ContextModal: React.FC<ContextModalProps> = ({ agent, onSave, onClo
             </div>
             <div>
               <h3 className="font-bold text-white">{agent.name}</h3>
-              <p className="text-sm text-purple-400">{agent.role}</p>
+              <p className="text-sm text-red-400">{agent.role}</p>
             </div>
           </div>
           <button
@@ -49,7 +49,7 @@ export const ContextModal: React.FC<ContextModalProps> = ({ agent, onSave, onClo
         {/* Body */}
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-2 text-sm text-gray-400">
-            <MessageSquare size={16} className="text-purple-400" />
+            <MessageSquare size={16} className="text-red-400" />
             <span>Custom Context for {agent.name}</span>
           </div>
 
@@ -63,7 +63,7 @@ Example:
 "Target Costa Rican small businesses."
 "Focus on security-first architecture."`}
             rows={8}
-            className="w-full bg-[#0A0A0A] border border-[#1F2937] rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none text-sm"
+            className="w-full bg-[#0A0A0A] border border-[#1F2937] rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none text-sm"
             autoFocus
           />
 
@@ -82,7 +82,7 @@ Example:
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
+            className="flex-1 bg-gradient-to-r from-red-600 to-red-900 600 hover:from-red-500 hover:to-red-900 500 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
           >
             <Save size={16} />
             Save Context

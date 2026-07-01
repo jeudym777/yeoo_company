@@ -117,7 +117,7 @@ export const OrgChartView: React.FC<OrgChartViewProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-xl">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-900 600 flex items-center justify-center text-xl">
                 🏢
               </div>
               <div>
@@ -135,7 +135,7 @@ export const OrgChartView: React.FC<OrgChartViewProps> = ({
             </button>
             <button
               onClick={onLaunchExecution}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-6 py-2 rounded-xl flex items-center gap-2 transition-all"
+              className="bg-gradient-to-r from-red-600 to-red-900 600 hover:from-red-500 hover:to-red-900 500 text-white font-bold px-6 py-2 rounded-xl flex items-center gap-2 transition-all"
             >
               <Play size={16} />
               Launch Organization
@@ -147,14 +147,14 @@ export const OrgChartView: React.FC<OrgChartViewProps> = ({
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-4">
             <div className="flex items-center gap-2">
-              <Layout size={18} className="text-purple-400" />
+              <Layout size={18} className="text-red-400" />
               <span className="text-sm text-gray-400">Departments</span>
             </div>
             <p className="text-2xl font-bold text-white mt-1">{departments.size}</p>
           </div>
           <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-4">
             <div className="flex items-center gap-2">
-              <Users size={18} className="text-purple-400" />
+              <Users size={18} className="text-red-400" />
               <span className="text-sm text-gray-400">Agents</span>
             </div>
             <p className="text-2xl font-bold text-white mt-1">{agents.length}</p>
@@ -172,7 +172,7 @@ export const OrgChartView: React.FC<OrgChartViewProps> = ({
 
         {/* CEO Level */}
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-red-400 uppercase tracking-wider flex items-center gap-2">
             <ChevronRight size={14} />
             Executive
           </h2>
@@ -222,7 +222,7 @@ export const OrgChartView: React.FC<OrgChartViewProps> = ({
                     e.stopPropagation();
                     handleAddAgent(deptName);
                   }}
-                  className="ml-auto text-gray-500 hover:text-purple-400 transition-colors opacity-0 group-hover:opacity-100"
+                  className="ml-auto text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                   title="Add Agent"
                 >
                   <Plus size={16} />

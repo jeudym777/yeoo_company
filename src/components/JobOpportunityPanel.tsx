@@ -149,7 +149,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <Building2 size={22} className="text-purple-400" />
+            <Building2 size={22} className="text-red-400" />
             <h2 className="text-xl font-bold text-white">Job Opportunity Analyzer</h2>
             <span className="text-sm text-slate-500">— {projectName}</span>
           </div>
@@ -164,7 +164,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
               value={filters.keywords}
               onChange={(e) => setFilters((p) => ({ ...p, keywords: e.target.value }))}
               placeholder="e.g. React, Node.js, Python"
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-red-500"
             />
           </div>
           <div>
@@ -172,7 +172,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
             <select
               value={filters.country}
               onChange={(e) => setFilters((p) => ({ ...p, country: e.target.value }))}
-              className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-purple-500"
+              className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-red-500"
             >
               {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
             </select>
@@ -190,7 +190,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
                 onClick={() => toggleSource(key)}
                 className={`flex items-center gap-1.5 p-2 rounded-lg border text-xs transition whitespace-nowrap ${
                   selectedSources.has(key)
-                    ? 'bg-purple-500/10 border-purple-500/30 text-purple-300'
+                    ? 'bg-red-500/10 border-red-500/30 text-red-300'
                     : 'bg-[#1A1F2E] border-[#2D3548] text-gray-500 hover:text-gray-300'
                 }`}
               >
@@ -203,14 +203,14 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
             <select
               value={filters.max_days_old}
               onChange={(e) => setFilters((p) => ({ ...p, max_days_old: parseInt(e.target.value) }))}
-              className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-purple-500"
+              className="bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-red-500"
             >
               {DAYS_OPTIONS.map((d) => <option key={d} value={d}>{d} {d === 1 ? 'día' : 'días'}</option>)}
             </select>
           </div>
           <div className="flex gap-2">
             <button onClick={handleSearch} disabled={status === 'searching' || status === 'analyzing'}
-              className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
+              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
               {status === 'searching' ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
               {status === 'searching' ? 'Searching...' : 'PLAY'}
             </button>
@@ -228,7 +228,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
 
         {/* Status */}
         {(status === 'searching' || status === 'analyzing') && (
-          <div className="px-4 py-2 bg-purple-500/10 border-b border-purple-500/20 text-xs text-purple-300 flex items-center gap-2">
+          <div className="px-4 py-2 bg-red-500/10 border-b border-red-500/20 text-xs text-red-300 flex items-center gap-2">
             <Loader2 size={14} className="animate-spin" />
             {status === 'searching' && `Buscando ofertas en ${Array.from(selectedSources).join(', ')}...`}
             {status === 'analyzing' && `Analizando ofertas con agentes... (${analyzingIndex + 1}/${jobs.length})`}
@@ -239,7 +239,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
         {status === 'done' && jobs.length > 0 && analyzedJobs.length === 0 && (
           <div className="px-4 py-3 border-b border-slate-700 flex justify-center">
             <button onClick={handleAnalyzeAll}
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-6 py-2 rounded-lg text-sm transition">
+              className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-900 600 hover:from-red-500 hover:to-red-900 500 text-white font-bold px-6 py-2 rounded-lg text-sm transition">
               <Star size={16} /> Analyze with AI Agents ({jobs.length} jobs)
             </button>
           </div>
@@ -274,7 +274,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
                     <td className="p-3 text-slate-500">{i + 1}</td>
                     <td className="p-3">
                       <p className="text-white font-semibold truncate">{job.title}</p>
-                      <p className="text-purple-400 text-[10px]">{job.company}</p>
+                      <p className="text-red-400 text-[10px]">{job.company}</p>
                     </td>
                     <td className="p-3 text-slate-300">
                       <div className="flex items-center gap-1"><MapPin size={10} /> {job.location}</div>
@@ -306,7 +306,7 @@ export const JobOpportunityPanel: React.FC<JobOpportunityPanelProps> = ({
                     <td className="p-3">
                       <div className="flex gap-1">
                         <a href={job.url || '#'} target="_blank" rel="noopener noreferrer"
-                          className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-purple-400 cursor-pointer">
+                          className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-red-400 cursor-pointer">
                           <ExternalLink size={12} />
                         </a>
                         <button

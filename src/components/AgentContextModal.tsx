@@ -99,7 +99,7 @@ export const AgentContextModal: React.FC<AgentContextModalProps> = ({ agent, onC
             />
             <div>
               <h3 className="font-bold text-white text-lg">{agent.firstName} {agent.lastName}</h3>
-              <p className="text-sm text-purple-400">{agent.division} · {agent.name.split(' ').slice(-1)[0] !== agent.lastName ? agent.name : ''}</p>
+              <p className="text-sm text-red-400">{agent.division} · {agent.name.split(' ').slice(-1)[0] !== agent.lastName ? agent.name : ''}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-2">
@@ -110,7 +110,7 @@ export const AgentContextModal: React.FC<AgentContextModalProps> = ({ agent, onC
         {/* Body */}
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-2 text-sm text-gray-400">
-            <MessageSquare size={16} className="text-purple-400" />
+            <MessageSquare size={16} className="text-red-400" />
             <span>General Context for {agent.firstName} {agent.lastName}</span>
           </div>
 
@@ -125,7 +125,7 @@ Example:
 "Focus on mobile-first design. Use Spanish language for all responses."
 "Specialize in financial sector regulations for LATAM."`}
             rows={10}
-            className="w-full bg-[#0A0A0A] border border-[#1F2937] rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none text-sm font-mono"
+            className="w-full bg-[#0A0A0A] border border-[#1F2937] rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none text-sm font-mono"
             autoFocus
           />
 
@@ -182,7 +182,7 @@ Example:
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
+            className="flex-1 bg-gradient-to-r from-red-600 to-red-900 600 hover:from-red-500 hover:to-red-900 500 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
           >
             <Save size={16} />
             Save Context

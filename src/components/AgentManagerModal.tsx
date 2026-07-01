@@ -138,7 +138,7 @@ export const AgentManagerModal: React.FC<AgentManagerModalProps> = ({ onClose, o
     }
   };
 
-  const inputClass = "w-full bg-[#0A0A0A] border border-[#1F2937] rounded-lg p-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500";
+  const inputClass = "w-full bg-[#0A0A0A] border border-[#1F2937] rounded-lg p-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-500";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -146,14 +146,14 @@ export const AgentManagerModal: React.FC<AgentManagerModalProps> = ({ onClose, o
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <User size={22} className="text-purple-400" />
+            <User size={22} className="text-red-400" />
             <h2 className="text-xl font-bold text-white">Agent Manager</h2>
             <span className="text-sm text-slate-500">({agents.length} agents)</span>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleNew}
-              className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer"
+              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer"
             >
               <Plus size={16} />
               New Agent
@@ -175,14 +175,14 @@ export const AgentManagerModal: React.FC<AgentManagerModalProps> = ({ onClose, o
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search agents..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-red-500"
                 />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
               {loading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 size={20} className="animate-spin text-purple-400" />
+                  <Loader2 size={20} className="animate-spin text-red-400" />
                 </div>
               ) : (
                 filteredAgents.map((agent) => (
@@ -191,7 +191,7 @@ export const AgentManagerModal: React.FC<AgentManagerModalProps> = ({ onClose, o
                     onClick={() => handleEdit(agent)}
                     className={`w-full text-left p-2.5 rounded-lg transition flex items-center gap-2 ${
                       editingAgent?.id === agent.id
-                        ? 'bg-purple-500/10 border border-purple-500/30'
+                        ? 'bg-red-500/10 border border-red-500/30'
                         : 'hover:bg-slate-800 border border-transparent'
                     }`}
                   >
@@ -310,7 +310,7 @@ export const AgentManagerModal: React.FC<AgentManagerModalProps> = ({ onClose, o
                     ))}
                     <button
                       onClick={() => handleAddArrayItem('expertise')}
-                      className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 transition cursor-pointer"
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition cursor-pointer"
                     >
                       <Plus size={12} /> Add expertise
                     </button>
@@ -339,7 +339,7 @@ export const AgentManagerModal: React.FC<AgentManagerModalProps> = ({ onClose, o
                     ))}
                     <button
                       onClick={() => handleAddArrayItem('deliverables')}
-                      className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 transition cursor-pointer"
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition cursor-pointer"
                     >
                       <Plus size={12} /> Add deliverable
                     </button>
@@ -371,7 +371,7 @@ export const AgentManagerModal: React.FC<AgentManagerModalProps> = ({ onClose, o
                   <button
                     onClick={handleSave}
                     disabled={saving || !editingAgent.name.trim()}
-                    className="bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition cursor-pointer"
+                    className="bg-red-600 hover:bg-red-500 disabled:bg-slate-700 disabled:text-slate-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition cursor-pointer"
                   >
                     {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                     {saving ? 'Saving...' : 'Save to Supabase'}

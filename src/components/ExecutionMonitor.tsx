@@ -199,7 +199,7 @@ Provide your expert analysis, recommendations, or deliverables based on your rol
         <div className="flex items-center gap-2">
           {node.status === 'completed' && <CheckCircle size={18} className="text-[#22C55E]" />}
           {node.status === 'error' && <XCircle size={18} className="text-red-500" />}
-          {node.status === 'running' && <Loader2 size={18} className="animate-spin text-purple-400" />}
+          {node.status === 'running' && <Loader2 size={18} className="animate-spin text-red-400" />}
           {node.status === 'pending' && <div className="w-[18px]" />}
         </div>
       </div>
@@ -210,7 +210,7 @@ Provide your expert analysis, recommendations, or deliverables based on your rol
           className={`h-full rounded-full transition-all duration-500 ${
             node.status === 'completed' ? 'bg-[#22C55E]' :
             node.status === 'error' ? 'bg-red-500' :
-            'bg-purple-500'
+            'bg-red-500'
           }`}
           style={{ width: `${node.progress}%` }}
         />
@@ -244,7 +244,7 @@ Provide your expert analysis, recommendations, or deliverables based on your rol
             {!isRunning && result.status === 'idle' && (
               <button
                 onClick={executeOrganization}
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-6 py-2 rounded-xl transition-all"
+                className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-900 600 hover:from-red-500 hover:to-red-900 500 text-white font-bold px-6 py-2 rounded-xl transition-all"
               >
                 <Play size={16} />
                 Launch Organization
@@ -282,7 +282,7 @@ Provide your expert analysis, recommendations, or deliverables based on your rol
         {result.finalReport && (
           <div className="bg-[#111827] border border-[#2D3548] rounded-xl p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <FileText size={20} className="text-purple-400" />
+              <FileText size={20} className="text-red-400" />
               <h2 className="text-xl font-bold text-white">Executive Report</h2>
             </div>
             <div className="bg-[#0A0A0A] border border-[#1F2937] rounded-xl p-6">

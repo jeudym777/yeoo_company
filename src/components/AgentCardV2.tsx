@@ -38,7 +38,7 @@ export const AgentCardV2: React.FC<AgentCardV2Props> = ({
   };
 
   return (
-    <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-4 w-72 hover:border-purple-500/50 transition-all duration-200 group">
+    <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-4 w-72 hover:border-red-500/50 transition-all duration-200 group">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export const AgentCardV2: React.FC<AgentCardV2Props> = ({
                     setShowModelMenu(false);
                   }}
                   className={`w-full text-left px-3 py-1.5 text-xs rounded hover:bg-[#2D3548] transition-colors ${
-                    agent.model === m ? 'text-purple-400' : 'text-gray-400'
+                    agent.model === m ? 'text-red-400' : 'text-gray-400'
                   }`}
                 >
                   <Cpu size={12} className="inline mr-1" />
@@ -101,13 +101,13 @@ export const AgentCardV2: React.FC<AgentCardV2Props> = ({
           <input
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            className="w-full bg-[#0A0A0A] border border-[#2D3548] rounded-lg px-2 py-1 text-white text-sm focus:outline-none focus:border-purple-500"
+            className="w-full bg-[#0A0A0A] border border-[#2D3548] rounded-lg px-2 py-1 text-white text-sm focus:outline-none focus:border-red-500"
             autoFocus
           />
           <input
             value={editRole}
             onChange={(e) => setEditRole(e.target.value)}
-            className="w-full bg-[#0A0A0A] border border-[#2D3548] rounded-lg px-2 py-1 text-gray-300 text-xs focus:outline-none focus:border-purple-500"
+            className="w-full bg-[#0A0A0A] border border-[#2D3548] rounded-lg px-2 py-1 text-gray-300 text-xs focus:outline-none focus:border-red-500"
           />
           <div className="flex gap-1">
             <button onClick={handleSaveEdit} className="text-[#22C55E] hover:text-green-400 p-1">
@@ -121,7 +121,7 @@ export const AgentCardV2: React.FC<AgentCardV2Props> = ({
       ) : (
         <div className="mb-3">
           <h3 className="font-bold text-white text-sm">{agent.name}</h3>
-          <p className="text-xs text-purple-400">{agent.role}</p>
+          <p className="text-xs text-red-400">{agent.role}</p>
         </div>
       )}
 
@@ -149,7 +149,7 @@ export const AgentCardV2: React.FC<AgentCardV2Props> = ({
       {/* Context Badge */}
       {agent.context && (
         <div className="mb-3">
-          <div className="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-1 rounded-lg border border-purple-500/20 truncate">
+          <div className="text-[10px] bg-red-500/10 text-red-400 px-2 py-1 rounded-lg border border-red-500/20 truncate">
             📝 {agent.context.substring(0, 40)}{agent.context.length > 40 ? '...' : ''}
           </div>
         </div>
@@ -167,7 +167,7 @@ export const AgentCardV2: React.FC<AgentCardV2Props> = ({
         </button>
         <button
           onClick={() => onContext(agent.id)}
-          className="flex-1 flex items-center justify-center gap-1 text-xs text-gray-400 hover:text-purple-400 hover:bg-[#1F2937] rounded-lg py-1.5 transition-all"
+          className="flex-1 flex items-center justify-center gap-1 text-xs text-gray-400 hover:text-red-400 hover:bg-[#1F2937] rounded-lg py-1.5 transition-all"
           title="Context"
         >
           <MessageSquare size={12} />

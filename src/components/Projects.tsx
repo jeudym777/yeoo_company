@@ -61,14 +61,14 @@ export const Projects: React.FC<ProjectsProps> = ({ provider, model, onOpenProje
             {projects.map((project) => (
               <div
                 key={project.id}
-                className="bg-[#111827] border border-[#1F2937] rounded-xl p-5 hover:border-purple-500/30 transition-all group"
+                className="bg-[#111827] border border-[#1F2937] rounded-xl p-5 hover:border-red-500/30 transition-all group"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <button
                         onClick={() => onOpenProject(project)}
-                        className="text-lg font-bold text-white hover:text-purple-400 transition-colors"
+                        className="text-lg font-bold text-white hover:text-red-400 transition-colors"
                       >
                         {project.name}
                       </button>

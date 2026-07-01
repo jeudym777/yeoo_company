@@ -155,16 +155,12 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
 
   const handleDeleteMessage = async (msgId: string) => {
     setDeletingMsgId(msgId);
-    // Remove from local state immediately
     setMessages((prev) => prev.filter((m) => m.id !== msgId));
-    // Delete from Supabase
     try {
       if (stableProjectId.current) {
         await supabase.from('messages').delete().eq('id', msgId).eq('project_id', stableProjectId.current);
       }
-    } catch {
-      // Silent — message is already removed from UI
-    }
+    } catch {}
     setDeletingMsgId(null);
     setHoveredMsgId(null);
   };
@@ -197,7 +193,6 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
     });
   };
 
-  // Filter agents that are selected AND have messages
   const getActiveReportAgents = useCallback(() => {
     return agents.filter(
       (a) => reportSelectedAgents.has(a.id) && messages.some((m) => m.agentName === a.name)
@@ -231,8 +226,6 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
         .join('\n\n');
 
       const agentOutputs = getActiveReportAgentOutputs();
-
-      // Inject Memory Bank into the problem/context for the CEO report
       const memoryBankContext = memoryBankContextRef.current;
       let problemWithContext = `Project: ${projectName}. Team conversation with ${activeAgents.map(a => a.name).join(', ')}.\n\n${conversationText.substring(0, 4000)}`;
       
@@ -276,7 +269,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
           <input
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
-            className="bg-transparent text-white font-bold text-lg focus:outline-none focus:border-b focus:border-purple-500 w-96"
+            className="bg-transparent text-white font-bold text-lg focus:outline-none focus:border-b focus:border-red-500 w-96"
           />
           <p className="text-xs text-gray-500">
             {agents.length} agents · {provider === 'groq' ? '⚡ Groq' : provider === 'gemini' ? '🌐 Gemini' : provider === 'deepseek' ? '☁️ DeepSeek' : '🖥️ Ollama'} · {model}
@@ -314,7 +307,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
           <button
             onClick={handleGenerateReport}
             disabled={isGeneratingReport || messages.length === 0 || reportSelectedAgents.size === 0}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg hover:from-purple-500 hover:to-indigo-500 transition-all text-xs disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-red-600 to-red-800 text-white px-3 py-1.5 rounded-lg hover:from-red-500 hover:to-red-700 transition-all text-xs disabled:opacity-50"
           >
             {isGeneratingReport ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
             Executive Report
@@ -327,11 +320,11 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
         <div className="w-56 bg-[#0D1117] border-r border-[#1F2937] overflow-y-auto flex-shrink-0">
           <div className="p-3">
             <div className="flex items-center gap-2 mb-1">
-              <Users size={14} className="text-purple-400" />
+              <Users size={14} className="text-red-400" />
               <span className="text-xs font-semibold text-gray-400 uppercase">Team</span>
             </div>
             <p className="text-[10px] text-gray-500 mb-3">
-              <span className="text-purple-400 font-bold">{reportSelectedCount}</span>/{totalAgents} for reports
+              <span className="text-red-400 font-bold">{reportSelectedCount}</span>/{totalAgents} for reports
             </p>
             {agents.map((agent) => {
               const isChatSelected = selectedAgentId === agent.id;
@@ -341,7 +334,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
                 <div
                   key={agent.id}
                   className={`flex items-center gap-1 p-1.5 rounded-lg mb-1 transition-all ${
-                    isChatSelected ? 'bg-purple-500/10 border border-purple-500/30' : 'hover:bg-[#1A1F2E]'
+                    isChatSelected ? 'bg-red-500/10 border border-red-500/30' : 'hover:bg-[#1A1F2E]'
                   }`}
                 >
                   {/* Report checkbox */}
@@ -351,7 +344,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
                       toggleReportAgent(agent.id);
                     }}
                     className={`flex-shrink-0 cursor-pointer transition-colors ${
-                      isReportSelected ? 'text-purple-400' : 'text-gray-600 hover:text-gray-400'
+                      isReportSelected ? 'text-red-400' : 'text-gray-600 hover:text-gray-400'
                     }`}
                     title={isReportSelected ? 'Remove from reports' : 'Add to reports'}
                   >
@@ -389,8 +382,8 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
         <div className="flex-1 flex flex-col">
           {/* Active Agent Banner */}
           {selectedAgent && (
-            <div className="bg-purple-500/5 border-b border-purple-500/20 px-4 py-2">
-              <p className="text-xs text-purple-400">
+            <div className="bg-red-500/5 border-b border-red-500/20 px-4 py-2">
+              <p className="text-xs text-red-400">
                 <strong>{selectedAgent.emoji} {selectedAgent.name}</strong> — {selectedAgent.description.substring(0, 100)}...
               </p>
             </div>
@@ -421,7 +414,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
                     <div
                       className={`max-w-2xl px-4 py-2.5 rounded-xl text-sm ${
                         msg.role === 'user'
-                          ? 'bg-purple-600 text-white'
+                          ? 'bg-red-600 text-white'
                           : msg.role === 'system'
                           ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                           : 'bg-[#1A1F2E] text-gray-200 border border-[#2D3548]'
@@ -457,7 +450,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-[#1A1F2E] border border-[#2D3548] px-4 py-2.5 rounded-xl flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin text-purple-400" />
+                  <Loader2 size={14} className="animate-spin text-red-400" />
                   <span className="text-sm text-gray-400">{selectedAgent?.name} is thinking...</span>
                 </div>
               </div>
@@ -479,13 +472,13 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
                 placeholder={`Ask ${selectedAgent?.name || 'an agent'}...`}
-                className="flex-1 bg-[#111827] border border-[#1F2937] rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                className="flex-1 bg-[#111827] border border-[#1F2937] rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-red-500"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || !inputValue.trim()}
-                className="bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 text-white p-2.5 rounded-xl transition-all"
+                className="bg-red-600 hover:bg-red-500 disabled:bg-gray-700 text-white p-2.5 rounded-xl transition-all"
               >
                 <Send size={16} />
               </button>
@@ -519,7 +512,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
         />
       )}
 
-      {/* SRD Modal — filter agents by report selection */}
+      {/* SRD Modal */}
       {showSrdModal && (
         <SRDModal
           projectName={projectName}
@@ -536,7 +529,7 @@ Provide expert, detailed analysis and recommendations. Be professional and thoro
           <div className="bg-[#111827] border border-[#2D3548] rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-[#1F2937]">
               <div className="flex items-center gap-2">
-                <FileText size={20} className="text-purple-400" />
+                <FileText size={20} className="text-red-400" />
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   Executive Report
                   <span className="text-xs font-normal text-gray-500 bg-[#1A1F2E] px-2 py-0.5 rounded-full">

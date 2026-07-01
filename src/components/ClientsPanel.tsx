@@ -91,20 +91,20 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
     if (editing?.id === id) setEditing(null);
   };
 
-  const inputClass = "w-full bg-[#0A0A0A] border border-[#1F2937] rounded-lg p-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500";
+  const inputClass = "w-full bg-[#0A0A0A] border border-[#1F2937] rounded-lg p-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-red-500";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-[95vw] max-w-6xl h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <Building2 size={22} className="text-purple-400" />
+            <Building2 size={22} className="text-red-400" />
             <h2 className="text-xl font-bold text-white">Clientes</h2>
             <span className="text-sm text-slate-500">({clients.length} registros)</span>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={loadClients} className="flex items-center gap-1 text-slate-400 hover:text-white text-xs cursor-pointer"><RefreshCw size={14} /> Recargar</button>
-            <button onClick={handleNew} className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer"><Plus size={16} /> Nuevo</button>
+            <button onClick={handleNew} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer"><Plus size={16} /> Nuevo</button>
             <button onClick={onClose} className="text-slate-400 hover:text-white text-2xl cursor-pointer">✕</button>
           </div>
         </div>
@@ -114,26 +114,26 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
             <div className="p-3 border-b border-slate-800">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-2.5 text-slate-500" />
-                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar..." className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-purple-500" />
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar..." className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-red-500" />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
               {loading ? (
-                <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-purple-400" /></div>
+                <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-red-400" /></div>
               ) : error && clients.length === 0 ? (
                 <div className="text-center py-8 px-4">
                   <p className="text-xs text-slate-500 mb-3">{error}</p>
-                  <button onClick={loadClients} className="text-xs text-purple-400 hover:text-purple-300 cursor-pointer">⟳ Reintentar</button>
+                  <button onClick={loadClients} className="text-xs text-red-400 hover:text-red-300 cursor-pointer">⟳ Reintentar</button>
                 </div>
               ) : (
                 filtered.map((client) => (
                   <button key={client.id} onClick={() => handleEdit(client)}
-                    className={`w-full text-left p-2.5 rounded-lg transition ${editing?.id === client.id ? 'bg-purple-500/10 border border-purple-500/30' : 'hover:bg-slate-800 border border-transparent'}`}>
+                    className={`w-full text-left p-2.5 rounded-lg transition ${editing?.id === client.id ? 'bg-red-500/10 border border-red-500/30' : 'hover:bg-slate-800 border border-transparent'}`}>
                     <p className="text-xs font-semibold text-white truncate">{client.nombre} {client.apellidos}</p>
                     <p className="text-[10px] text-slate-500 truncate">{client.email}</p>
                     <div className="flex gap-2 mt-1">
                       <span className="text-[9px] capitalize text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">{client.nivel_fidelidad}</span>
-                      <span className="text-[9px] text-purple-400">{client.puntos_acumulados} pts</span>
+                      <span className="text-[9px] text-red-400">{client.puntos_acumulados} pts</span>
                     </div>
                   </button>
                 ))
@@ -223,7 +223,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   </button>
                   <div className="flex-1" />
                   <button onClick={() => setEditing(null)} className="bg-slate-800 text-slate-400 border border-slate-700 hover:text-white px-6 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer">Cancelar</button>
-                  <button onClick={handleSave} disabled={saving} className="bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition cursor-pointer">
+                  <button onClick={handleSave} disabled={saving} className="bg-red-600 hover:bg-red-500 disabled:bg-slate-700 disabled:text-slate-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition cursor-pointer">
                     {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                     {saving ? 'Guardando...' : 'Guardar'}
                   </button>

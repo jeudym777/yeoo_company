@@ -245,7 +245,7 @@ IMPORTANT CONSTRAINTS:
 
             {/* Orchestrator Result */}
             {orchestratorResult && (
-              <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+              <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-4xl">{orchestratorResult.agent.emoji}</span>
                   <div className="flex-1">
@@ -257,7 +257,7 @@ IMPORTANT CONSTRAINTS:
 
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 mb-2">Conclusión Final:</h4>
-                  <div className="bg-purple-50 p-4 rounded text-sm text-gray-800 whitespace-pre-wrap">
+                  <div className="bg-red-50 p-4 rounded text-sm text-gray-800 whitespace-pre-wrap">
                     {orchestratorResult.output}
                   </div>
                 </div>

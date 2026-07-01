@@ -309,7 +309,7 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
       <div className="bg-[#111827] border border-[#2D3548] rounded-2xl w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-[#1F2937] flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-900 600 flex items-center justify-center">
               <FileText size={20} className="text-white" />
             </div>
             <div>
@@ -329,12 +329,12 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
                 <div className="flex justify-between text-sm"><span className="text-gray-400">Sections</span><span className="text-white font-bold">{selectedSections}</span></div>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-gray-400"><SlidersHorizontal size={16} className="text-purple-400" /> Sections</div>
+              <div className="flex items-center gap-2 text-sm text-gray-400"><SlidersHorizontal size={16} className="text-red-400" /> Sections</div>
               <div className="space-y-1.5">
                 {SECTION_CONFIG.map(({ key, label }) => (
                   <button key={key} onClick={() => toggleOption(key)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left ${options[key] ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#1A1F2E] border-[#2D3548] text-gray-500 hover:text-gray-300'}`}>
-                    {options[key] ? <CheckSquare size={18} className="text-purple-400 flex-shrink-0" /> : <Square size={18} className="text-gray-600 flex-shrink-0" />}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left ${options[key] ? 'bg-red-500/10 border-red-500/30 text-white' : 'bg-[#1A1F2E] border-[#2D3548] text-gray-500 hover:text-gray-300'}`}>
+                    {options[key] ? <CheckSquare size={18} className="text-red-400 flex-shrink-0" /> : <Square size={18} className="text-gray-600 flex-shrink-0" />}
                     <span className="text-sm">{label}</span>
                   </button>
                 ))}
@@ -357,14 +357,14 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
                 </div>
               </div>
 
-              <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-3">
-                <p className="text-[11px] text-purple-300 flex items-center gap-2">
+              <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3">
+                <p className="text-[11px] text-red-300 flex items-center gap-2">
                   <Brain size={14} /> <strong>Interactive SRD:</strong> Agents analyze → ask questions → you answer → final doc.
                 </p>
               </div>
 
               <div className="space-y-2 pt-2">
-                <button onClick={handleStart} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2">
+                <button onClick={handleStart} className="w-full bg-gradient-to-r from-red-600 to-red-900 600 hover:from-red-500 hover:to-red-900 500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2">
                   <Download size={18} /> Start Analysis
                 </button>
                 <button onClick={handleUpload} className="w-full bg-[#1A1F2E] text-gray-400 border border-[#2D3548] hover:bg-[#2D3548] font-medium py-3 rounded-xl flex items-center justify-center gap-2">
@@ -376,8 +376,8 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
 
           {status === 'analyzing' && (
             <div className="flex flex-col items-center gap-3 py-6">
-              <Brain size={24} className="animate-pulse text-purple-400" />
-              <div className="flex items-center gap-2"><Loader2 size={16} className="animate-spin text-purple-400" /><span className="text-gray-400 text-sm">{analysisProgress}</span></div>
+              <Brain size={24} className="animate-pulse text-red-400" />
+              <div className="flex items-center gap-2"><Loader2 size={16} className="animate-spin text-red-400" /><span className="text-gray-400 text-sm">{analysisProgress}</span></div>
               <p className="text-[11px] text-gray-500">Agents are analyzing and may raise questions...</p>
             </div>
           )}
@@ -404,7 +404,7 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
                   <div key={i} className="bg-[#0A0A0A] border border-[#1F2937] rounded-lg p-3">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <p className="text-[10px] text-purple-400 font-semibold">{q.agentName}</p>
+                        <p className="text-[10px] text-red-400 font-semibold">{q.agentName}</p>
                         <p className="text-xs text-gray-300 mt-0.5">{q.question}</p>
                       </div>
                     </div>
@@ -422,15 +422,15 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
                           onChange={(e) => setQuickAnswer(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') handleAnswerSubmit(); }}
                           placeholder="Your answer..."
-                          className="flex-1 bg-[#1A1F2E] border border-[#2D3548] rounded-lg p-2 text-white text-xs placeholder-gray-600 focus:outline-none focus:border-purple-500"
+                          className="flex-1 bg-[#1A1F2E] border border-[#2D3548] rounded-lg p-2 text-white text-xs placeholder-gray-600 focus:outline-none focus:border-red-500"
                           autoFocus
                         />
-                        <button onClick={handleAnswerSubmit} className="bg-purple-600 text-white p-2 rounded-lg"><Send size={12} /></button>
+                        <button onClick={handleAnswerSubmit} className="bg-red-600 text-white p-2 rounded-lg"><Send size={12} /></button>
                         <button onClick={() => { setAnsweringIndex(null); setQuickAnswer(''); }} className="text-gray-500 p-2">✕</button>
                       </div>
                     ) : (
                       <button onClick={() => setAnsweringIndex(i)}
-                        className="text-[11px] text-purple-400 hover:text-purple-300 cursor-pointer mt-1">
+                        className="text-[11px] text-red-400 hover:text-red-300 cursor-pointer mt-1">
                         + Answer
                       </button>
                     )}
@@ -444,7 +444,7 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
                   Skip All (Use Assumptions)
                 </button>
                 <button onClick={handleContinueWithAnswers}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2">
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-900 600 hover:from-red-500 hover:to-red-900 500 text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2">
                   <Download size={16} /> Continue with Answers
                 </button>
               </div>
@@ -453,7 +453,7 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
 
           {status === 'generating' && (
             <div className="flex items-center justify-center gap-3 py-6">
-              <Loader2 size={24} className="animate-spin text-purple-400" />
+              <Loader2 size={24} className="animate-spin text-red-400" />
               <span className="text-gray-400">Generating document...</span>
             </div>
           )}
@@ -464,7 +464,7 @@ Include ${options.maxReqsPerAgent} requirements, risks, time estimates. Be thoro
                 <CheckCircle size={18} /><span className="text-sm">SRD generated!</span>
               </div>
               {downloaded && <p className="text-xs text-gray-500">.docx downloaded.</p>}
-              {driveLink && <a href={driveLink} target="_blank" rel="noopener noreferrer" className="block w-full text-center bg-[#1A1F2E] text-purple-400 border border-purple-500/30 hover:bg-purple-500/10 py-2.5 rounded-xl text-sm transition-all">📄 Open in Google Drive</a>}
+              {driveLink && <a href={driveLink} target="_blank" rel="noopener noreferrer" className="block w-full text-center bg-[#1A1F2E] text-red-400 border border-red-500/30 hover:bg-red-500/10 py-2.5 rounded-xl text-sm transition-all">📄 Open in Google Drive</a>}
               <button onClick={() => { setStatus('config'); setDriveLink(null); setDownloaded(false); setQuestions([]); setEnrichedMessages([]); }}
                 className="w-full bg-[#1A1F2E] text-gray-400 border border-[#2D3548] py-2 rounded-xl text-sm hover:bg-[#2D3548] transition-all">
                 New Document
