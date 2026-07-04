@@ -15,6 +15,7 @@ import { SRDModal } from './SRDModal';
 import { JobOpportunityPanel } from './JobOpportunityPanel';
 import MemoryBankPanel from './MemoryBankPanel';
 import { memoryBankService } from '../services/memoryBank';
+import { ragService } from '../services/rag-service';
 
 interface TeamChatProps {
   agents: Agent[];
@@ -109,10 +110,28 @@ export const TeamChat: React.FC<TeamChatProps> = ({
       const context = agentContexts[selectedAgent.id] || '';
       const memoryBankContext = memoryBankContextRef.current;
       
+      // 1. Fetch relevant context from Company RAG in Supabase
+      let ragContext = '';
+      try {
+        const matches = await ragService.search(inputValue, 3);
+        if (matches.length > 0) {
+          ragContext = `\n\n--- INFORMACIÓN OFICIAL DE LA EMPRESA (RAG) ---\n${matches
+            .map((m) => `[Categoría: ${m.category}] - ${m.title}:\n${m.content}`)
+            .join('\n\n')}\n--- FIN DE INFORMACIÓN ---`;
+        }
+      } catch (ragErr) {
+        console.warn('Failed to query RAG:', ragErr);
+      }
+
       let systemPrompt = `${selectedAgent.prompt}
 ${context ? `CUSTOM CONTEXT: ${context}` : ''}
 You are ${selectedAgent.name} from the ${selectedAgent.division} division at YEOO Labs.
 Provide expert, detailed analysis and recommendations. Be professional and thorough.`;
+
+      // Inject RAG context if found
+      if (ragContext) {
+        systemPrompt += `\n\nUse this official company info to answer the user query accurately:${ragContext}`;
+      }
 
       // Inject Memory Bank as reference context for the agent
       if (memoryBankContext) {

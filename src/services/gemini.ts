@@ -127,6 +127,37 @@ class GeminiService {
   listModels(): string[] {
     return ['gemini-2.0-flash'];
   }
+
+  async embedText(text: string): Promise<number[]> {
+    const url = `${GEMINI_BASE_URL}/models/text-embedding-004:embedContent?key=${this.getApiKey()}`;
+    const payload = {
+      content: {
+        parts: [{ text }]
+      }
+    };
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Gemini Embedding Error: ${res.statusText}`);
+      }
+
+      const data = await res.json();
+      const embedding = data.embedding?.values;
+      if (!embedding || !Array.isArray(embedding)) {
+        throw new Error('Gemini did not return valid embedding values.');
+      }
+      return embedding;
+    } catch (err) {
+      console.error('Error generating embedding:', err);
+      throw err;
+    }
+  }
 }
 
 export default new GeminiService();

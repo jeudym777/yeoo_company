@@ -28,6 +28,7 @@ export const AgentFlowExecutor: React.FC<AgentFlowExecutorProps> = ({
 }) => {
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [executionMode, setExecutionMode] = useState<'sequential' | 'parallel'>('sequential');
   const [agentResults, setAgentResults] = useState<AgentResult[]>([]);
   const [orchestratorResult, setOrchestratorResult] = useState<AgentResult | null>(null);
 
@@ -58,47 +59,97 @@ export const AgentFlowExecutor: React.FC<AgentFlowExecutorProps> = ({
     setAgentResults(results);
 
     let currentContext = userInput;
-    let lastAgentIndex = 0;
 
     try {
-      // Execute each agent sequentially
-      for (let i = 0; i < agents.length; i++) {
-        const agent = agents[i];
+      if (executionMode === 'sequential') {
+        // Execute each agent sequentially
+        for (let i = 0; i < agents.length; i++) {
+          const agent = agents[i];
 
-        // Update status to processing
-        results[i].status = 'processing';
-        results[i].input = currentContext;
-        setAgentResults([...results]);
+          // Update status to processing
+          results[i].status = 'processing';
+          results[i].input = currentContext;
+          setAgentResults([...results]);
 
-        try {
-          const systemPrompt = `${agent.prompt}
+          try {
+            const systemPrompt = `${agent.prompt}
 
 IMPORTANT CONSTRAINTS:
 - Keep response under ${wordLimit} words
 - Be concise and focused
 - Provide clear analysis or recommendations`;
 
-          const response = await callGenerate(currentContext, systemPrompt);
+            const response = await callGenerate(currentContext, systemPrompt);
 
-          // Truncate response if needed
-          const words = response.split(/\s+/);
-          const truncatedResponse = words.slice(0, wordLimit).join(' ');
-          const wasTruncated = words.length > wordLimit;
+            // Truncate response if needed
+            const words = response.split(/\s+/);
+            const truncatedResponse = words.slice(0, wordLimit).join(' ');
+            const wasTruncated = words.length > wordLimit;
 
-          results[i].output = truncatedResponse + (wasTruncated ? '\n[... truncated to word limit]' : '');
-          results[i].status = 'completed';
+            results[i].output = truncatedResponse + (wasTruncated ? '\n[... truncated to word limit]' : '');
+            results[i].status = 'completed';
 
-          // Pass output as context for next agent, PLUS original prompt for alignment
-          if (i < agents.length - 1) {
-            currentContext = `ORIGINAL USER QUERY:\n${userInput}\n\nPREVIOUS ANALYSIS:\nFrom ${agent.name}:\n${results[i].output}\n\nNow please analyze from your perspective and align with the original query.`;
+            // Pass output as context for next agent, PLUS original prompt for alignment
+            if (i < agents.length - 1) {
+              currentContext = `ORIGINAL USER QUERY:\n${userInput}\n\nPREVIOUS ANALYSIS:\nFrom ${agent.name}:\n${results[i].output}\n\nNow please analyze from your perspective and align with the original query.`;
+            }
+          } catch (error) {
+            results[i].output = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            results[i].status = 'error';
           }
-          lastAgentIndex = i;
-        } catch (error) {
-          results[i].output = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
-          results[i].status = 'error';
-        }
 
-        setAgentResults([...results]);
+          setAgentResults([...results]);
+        }
+      } else {
+        // Execute all agents in parallel
+        const executeParallelAgent = async (index: number) => {
+          const agent = agents[index];
+          results[index].status = 'processing';
+          results[index].input = userInput;
+
+          setAgentResults((prev) => {
+            const next = [...prev];
+            next[index] = { ...next[index], status: 'processing', input: userInput };
+            return next;
+          });
+
+          try {
+            const systemPrompt = `${agent.prompt}
+
+IMPORTANT CONSTRAINTS:
+- Keep response under ${wordLimit} words
+- Be concise and focused
+- Provide clear analysis or recommendations`;
+
+            const response = await callGenerate(userInput, systemPrompt);
+
+            const words = response.split(/\s+/);
+            const truncatedResponse = words.slice(0, wordLimit).join(' ');
+            const wasTruncated = words.length > wordLimit;
+
+            const finalOutput = truncatedResponse + (wasTruncated ? '\n[... truncated to word limit]' : '');
+            results[index].output = finalOutput;
+            results[index].status = 'completed';
+
+            setAgentResults((prev) => {
+              const next = [...prev];
+              next[index] = { ...next[index], status: 'completed', output: finalOutput };
+              return next;
+            });
+          } catch (error) {
+            const errStr = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            results[index].output = errStr;
+            results[index].status = 'error';
+
+            setAgentResults((prev) => {
+              const next = [...prev];
+              next[index] = { ...next[index], status: 'error', output: errStr };
+              return next;
+            });
+          }
+        };
+
+        await Promise.all(agents.map((_, index) => executeParallelAgent(index)));
       }
 
       // Execute Orchestrator (Discussion Agent) - "Agents Orchestrator"
@@ -164,7 +215,7 @@ IMPORTANT CONSTRAINTS:
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">Agent Analysis Flow</h1>
           <p className="text-sm text-gray-600">
-            {agents.length} agentes en cadena | {provider === 'deepseek' ? '☁️ DeepSeek' : '🖥️ Ollama'} - {model}
+            {agents.length} agentes ({executionMode === 'sequential' ? 'en cadena' : 'en paralelo'}) | {provider === 'deepseek' ? '☁️ DeepSeek' : provider === 'groq' ? '⚡ Groq' : provider === 'gemini' ? '🌐 Gemini' : '🖥️ Ollama'} - {model}
           </p>
         </div>
       </div>
@@ -173,6 +224,41 @@ IMPORTANT CONSTRAINTS:
         {/* Input Section */}
         {agentResults.length === 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+            <div className="flex flex-col gap-2 mb-2">
+              <span className="text-sm font-semibold text-gray-700">Modo de Ejecución:</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setExecutionMode('sequential')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all border ${
+                    executionMode === 'sequential'
+                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm font-semibold'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                  disabled={isProcessing}
+                >
+                  🔗 Secuencial (Cascada)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExecutionMode('parallel')}
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all border ${
+                    executionMode === 'parallel'
+                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm font-semibold'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                  disabled={isProcessing}
+                >
+                  ⚡ Paralelo (Concurrente)
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">
+                {executionMode === 'sequential'
+                  ? 'Cada agente recibe el análisis acumulado del agente anterior en orden lineal.'
+                  : 'Todos los agentes analizan la consulta inicial simultáneamente.'}
+              </p>
+            </div>
+
             <label className="block text-lg font-semibold text-gray-900">
               ¿Cuál es tu pregunta o desafío?
             </label>
@@ -196,7 +282,7 @@ IMPORTANT CONSTRAINTS:
                 </>
               ) : (
                 <>
-                  ▶ Iniciar Análisis en Cadena
+                  ▶ {executionMode === 'sequential' ? 'Iniciar Análisis en Cadena' : 'Iniciar Análisis en Paralelo'}
                 </>
               )}
             </button>

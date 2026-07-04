@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import type { Agent, Provider } from './types';
+import type { Agent, Provider, OrgChart } from './types';
 import type { SavedProject } from './services/storage';
 import { ModelSelector } from './components/ModelSelector';
 import { Dashboard } from './components/Dashboard';
 import { TeamChat } from './components/TeamChat';
 import { Projects } from './components/Projects';
+import { ProblemInput } from './components/ProblemInput';
+import { OrgChartView } from './components/OrgChartView';
+import { ExecutionMonitor } from './components/ExecutionMonitor';
+import { CEOServiceInstance } from './services/ceo';
 import OllamaService from './services/ollama';
 import DeepSeekService from './services/deepseek';
 import GroqService from './services/groq';
 import GeminiService from './services/gemini';
 
-type View = 'model-config' | 'dashboard' | 'team-chat' | 'projects';
+type View = 'model-config' | 'dashboard' | 'team-chat' | 'projects' | 'problem-input' | 'org-chart' | 'execution-monitor';
 
 function App() {
   const [currentView, setCurrentView] = useState<View>('model-config');
@@ -20,6 +24,11 @@ function App() {
   const [teamName, setTeamName] = useState('');
   const [activeProject, setActiveProject] = useState<SavedProject | undefined>();
 
+  // AI Org Builder state
+  const [activeOrgChart, setActiveOrgChart] = useState<OrgChart | undefined>();
+  const [isGeneratingOrg, setIsGeneratingOrg] = useState(false);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+
   useEffect(() => {
     const savedModel = localStorage.getItem('selectedModel');
     const savedProvider = localStorage.getItem('selectedProvider') as Provider | null;
@@ -28,6 +37,28 @@ function App() {
       setSelectedProvider(savedProvider);
     }
   }, []);
+
+  // Fetch available models for provider
+  useEffect(() => {
+    const fetchModels = async () => {
+      let models: string[] = [];
+      try {
+        if (selectedProvider === 'ollama') {
+          models = await OllamaService.listModels();
+        } else if (selectedProvider === 'deepseek') {
+          models = DeepSeekService.listModels();
+        } else if (selectedProvider === 'groq') {
+          models = GroqService.listModels();
+        } else if (selectedProvider === 'gemini') {
+          models = GeminiService.listModels();
+        }
+      } catch (err) {
+        console.error("Error loading models:", err);
+      }
+      setAvailableModels(models);
+    };
+    fetchModels();
+  }, [selectedProvider]);
 
   // Removed auto-redirect so user can change model anytime
 
@@ -69,6 +100,23 @@ function App() {
     setCurrentView('dashboard');
   };
 
+  const handleGenerateOrg = async (problem: string) => {
+    setIsGeneratingOrg(true);
+    try {
+      const orgChart = await CEOServiceInstance.generateOrganization({
+        provider: selectedProvider,
+        model: selectedModel,
+        problem,
+      });
+      setActiveOrgChart(orgChart);
+      setCurrentView('org-chart');
+    } catch (error) {
+      alert(`Error generating organization: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsGeneratingOrg(false);
+    }
+  };
+
   return (
     <div className="yeoo-os">
       {currentView === 'model-config' && (
@@ -91,6 +139,7 @@ function App() {
           onTeamSelect={handleTeamSelect}
           onProjectsClick={handleGoToProjects}
           onChangeConfig={() => setCurrentView('model-config')}
+          onOrgBuilderClick={() => setCurrentView('problem-input')}
         />
       )}
 
@@ -113,6 +162,40 @@ function App() {
           model={selectedModel}
           onOpenProject={handleOpenProject}
           onBack={handleBackFromProjects}
+        />
+      )}
+
+      {currentView === 'problem-input' && (
+        <ProblemInput
+          provider={selectedProvider}
+          model={selectedModel}
+          onGenerateOrg={handleGenerateOrg}
+          isGenerating={isGeneratingOrg}
+          onChangeConfig={() => setCurrentView('model-config')}
+        />
+      )}
+
+      {currentView === 'org-chart' && activeOrgChart && (
+        <OrgChartView
+          orgChart={activeOrgChart}
+          provider={selectedProvider}
+          availableModels={availableModels}
+          onUpdateAgents={(updatedAgents) => {
+            setActiveOrgChart((prev) => prev ? { ...prev, agents: updatedAgents } : undefined);
+          }}
+          onLaunchExecution={() => setCurrentView('execution-monitor')}
+          onBack={() => setCurrentView('dashboard')}
+        />
+      )}
+
+      {currentView === 'execution-monitor' && activeOrgChart && (
+        <ExecutionMonitor
+          orgName={activeOrgChart.name}
+          problem={activeOrgChart.problem}
+          agents={activeOrgChart.agents}
+          provider={selectedProvider}
+          model={selectedModel}
+          onBack={() => setCurrentView('org-chart')}
         />
       )}
     </div>

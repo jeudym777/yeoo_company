@@ -6,10 +6,12 @@ import { storageService } from '../services/storage';
 import { agentService } from '../services/agent-service';
 import { accessCodeService } from '../services/access-code';
 import { AgentContextModal } from './AgentContextModal';
-import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog, Building2 } from 'lucide-react';
+import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog, Building2, Sparkles } from 'lucide-react';
 import { AgentManagerModal } from './AgentManagerModal';
 import { ClientsPanel } from './ClientsPanel';
 import { AccessCodeModal } from './AccessCodeModal';
+import { KnowledgeBasePanel } from './KnowledgeBasePanel';
+import { LeadProspectingPanel } from './LeadProspectingPanel';
 
 interface DashboardProps {
   provider: Provider;
@@ -17,6 +19,7 @@ interface DashboardProps {
   onTeamSelect: (agents: Agent[], teamName: string) => void;
   onProjectsClick: () => void;
   onChangeConfig: () => void;
+  onOrgBuilderClick: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -25,6 +28,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onTeamSelect,
   onProjectsClick,
   onChangeConfig,
+  onOrgBuilderClick,
 }) => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loadingAgents, setLoadingAgents] = useState(true);
@@ -37,6 +41,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showAgentManager, setShowAgentManager] = useState(false);
   const [showClients, setShowClients] = useState(false);
   const [showAccessModal, setShowAccessModal] = useState(false);
+  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
+  const [showLeadProspecting, setShowLeadProspecting] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   // Load agents from Supabase (with fallback to agents_yeoo.ts)
@@ -99,6 +105,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (pendingAction === 'clients') setShowClients(true);
     else if (pendingAction === 'agents') { agentService.clearCache(); setShowAgentManager(true); }
     else if (pendingAction === 'projects') onProjectsClick();
+    else if (pendingAction === 'leads') setShowLeadProspecting(true);
+    else if (pendingAction === 'knowledge') setShowKnowledgeBase(true);
     setPendingAction(null);
   }, [pendingAction, onProjectsClick]);
 
@@ -128,6 +136,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => handleRequireAccess('knowledge', () => setShowKnowledgeBase(true))}
+              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-300 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] hover:text-white transition-all text-sm font-medium animate-fade-in"
+            >
+              🧠 Cerebro RAG
+            </button>
+            <button
+              onClick={() => handleRequireAccess('leads', () => setShowLeadProspecting(true))}
+              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-300 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] hover:text-white transition-all text-sm font-medium animate-fade-in"
+            >
+              🎯 Prospección
+            </button>
+            <button
+              onClick={onOrgBuilderClick}
+              className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-800 text-white px-4 py-2 rounded-xl hover:from-red-500 hover:to-red-700 transition-all text-sm font-semibold shadow-md shadow-red-950/20"
+            >
+              <Sparkles size={16} />
+              AI Org Builder
+            </button>
+            <button
               onClick={() => handleRequireAccess('clients', () => setShowClients(true))}
               className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
             >
@@ -152,7 +179,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               onClick={onChangeConfig}
               className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
             >
-              {provider === 'deepseek' ? '☁️ DeepSeek' : '🖥️ Ollama'} · {model} — Change
+              {provider === 'deepseek' ? '☁️ DeepSeek' : provider === 'groq' ? '⚡ Groq' : provider === 'gemini' ? '🌐 Gemini' : '🖥️ Ollama'} · {model} — Change
             </button>
           </div>
         </div>
@@ -286,6 +313,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Clients Panel */}
         {showClients && (
           <ClientsPanel onClose={() => setShowClients(false)} />
+        )}
+
+        {/* Knowledge Base RAG Panel */}
+        {showKnowledgeBase && (
+          <KnowledgeBasePanel onClose={() => setShowKnowledgeBase(false)} />
+        )}
+
+        {/* Lead Prospecting Panel */}
+        {showLeadProspecting && (
+          <LeadProspectingPanel
+            provider={provider}
+            model={model}
+            onClose={() => setShowLeadProspecting(false)}
+          />
         )}
 
         {/* Agent Manager Modal */}
