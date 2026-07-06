@@ -1,5 +1,4 @@
-// Freepik AI Text-to-Image API Service Client
-// Calls the Freepik proxy endpoint to generate commercial marketing assets.
+const FREEPIK_BASE_URL = import.meta.env.DEV ? '/api/freepik' : 'https://api.freepik.com';
 
 export class FreepikService {
   private static getApiKey(): string {
@@ -21,7 +20,7 @@ export class FreepikService {
     quantity: number = 1
   ): Promise<string[]> {
     const key = this.getApiKey();
-    const url = 'https://api.freepik.com/v1/ai/text-to-image';
+    const url = `${FREEPIK_BASE_URL}/v1/ai/text-to-image`;
     
     // Create parallel fetch promises
     const promises = Array.from({ length: quantity }).map(async (_, idx) => {

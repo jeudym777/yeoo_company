@@ -11,6 +11,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/gemini/, ''),
       },
+      '/api/freepik': {
+        target: 'https://api.freepik.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/freepik/, ''),
+      },
     },
   },
 })
