@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { prospectingService, type Lead } from '../services/prospecting-service';
 import { prospectService } from '../services/prospect-service';
-import { X, Search, Mail, Phone, Globe, Save, Trash2, Loader2, Copy, Check, Sparkles, Building2, Eye, Target, Plus, FileText } from 'lucide-react';
+import { X, Search, Mail, Phone, Globe, Save, Trash2, Loader2, Copy, Check, Sparkles, Building2, Eye, Target, Plus, FileText, MessageCircle } from 'lucide-react';
 import type { Provider } from '../types';
 
 interface LeadProspectingPanelProps {
@@ -499,7 +499,21 @@ export const LeadProspectingPanel: React.FC<LeadProspectingPanelProps> = ({
                     </h3>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
                       <span className="flex items-center gap-1"><Eye size={12} /> {selectedLead.contact_name || 'Gerente'}</span>
-                      {selectedLead.phone && <span className="flex items-center gap-1"><Phone size={12} /> {selectedLead.phone}</span>}
+                      {selectedLead.phone && (
+                        <span className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-lg">
+                          <Phone size={12} />
+                          {selectedLead.phone}
+                          <a
+                            href={`https://wa.me/${selectedLead.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-1 text-green-400 hover:text-white transition-colors"
+                            title="Abrir chat de WhatsApp"
+                          >
+                            <MessageCircle size={12} />
+                          </a>
+                        </span>
+                      )}
                       {selectedLead.email && <span className="flex items-center gap-1"><Mail size={12} /> {selectedLead.email}</span>}
                       {selectedLead.website && (
                         <a

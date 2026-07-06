@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { clientService, type Client } from '../services/client-service';
-import { Search, Building2, Mail, Phone, QrCode, Star, CalendarDays, Loader2, Plus, Save, Trash2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, Building2, Mail, Phone, QrCode, Star, CalendarDays, Loader2, Plus, Save, Trash2, AlertCircle, RefreshCw, MessageCircle } from 'lucide-react';
 
 const NUEVO_CLIENTE = (): Client => ({
   id: crypto.randomUUID ? crypto.randomUUID() : `cli-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -166,7 +166,20 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onClose }) => {
                   </div>
                   <div>
                     <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Teléfono</label>
-                    <input className={inputClass} value={editing.telefono} onChange={(e) => handleField('telefono', e.target.value)} placeholder="+506 8888-8888" />
+                    <div className="flex gap-2">
+                      <input className={inputClass} value={editing.telefono} onChange={(e) => handleField('telefono', e.target.value)} placeholder="+506 8888-8888" />
+                      {editing.telefono && (
+                        <a
+                          href={`https://wa.me/${editing.telefono.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 bg-green-500/10 border border-green-500/20 hover:bg-green-600 text-green-400 hover:text-white rounded-lg flex items-center justify-center transition cursor-pointer"
+                          title="Abrir chat de WhatsApp"
+                        >
+                          <MessageCircle size={14} />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
 

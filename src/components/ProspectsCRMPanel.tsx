@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { prospectService, type Prospect } from '../services/prospect-service';
-import { X, Search, Briefcase, Plus, Trash2, Loader2, Save, FileText, Building2, User, Mail, Phone, Globe, Edit2, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { X, Search, Briefcase, Plus, Trash2, Loader2, Save, FileText, Building2, User, Mail, Phone, Globe, Edit2, AlertCircle, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
 
 interface ProspectsCRMPanelProps {
   onClose: () => void;
@@ -296,13 +296,26 @@ export const ProspectsCRMPanel: React.FC<ProspectsCRMPanelProps> = ({ onClose })
 
                     <div className="space-y-1">
                       <label className={labelClass}>Teléfono</label>
-                      <input
-                        type="text"
-                        value={selectedProspect.phone}
-                        onChange={(e) => setSelectedProspect({ ...selectedProspect, phone: e.target.value })}
-                        placeholder="Ej. +34600111222"
-                        className={inputClass}
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={selectedProspect.phone}
+                          onChange={(e) => setSelectedProspect({ ...selectedProspect, phone: e.target.value })}
+                          placeholder="Ej. +34600111222"
+                          className={inputClass}
+                        />
+                        {selectedProspect.phone && (
+                          <a
+                            href={`https://wa.me/${selectedProspect.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 bg-green-500/10 border border-green-500/20 hover:bg-green-600 text-green-400 hover:text-white rounded-lg flex items-center justify-center transition-all"
+                            title="Abrir chat de WhatsApp"
+                          >
+                            <MessageCircle size={14} />
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-1">
@@ -406,7 +419,21 @@ export const ProspectsCRMPanel: React.FC<ProspectsCRMPanelProps> = ({ onClose })
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
                         {selectedProspect.contact_name && <span className="flex items-center gap-1"><User size={12} /> {selectedProspect.contact_name}</span>}
-                        {selectedProspect.phone && <span className="flex items-center gap-1"><Phone size={12} /> {selectedProspect.phone}</span>}
+                        {selectedProspect.phone && (
+                          <span className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-lg">
+                            <Phone size={12} />
+                            {selectedProspect.phone}
+                            <a
+                              href={`https://wa.me/${selectedProspect.phone.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1 text-green-400 hover:text-white transition-colors"
+                              title="Abrir chat de WhatsApp"
+                            >
+                              <MessageCircle size={12} />
+                            </a>
+                          </span>
+                        )}
                         {selectedProspect.email && <span className="flex items-center gap-1"><Mail size={12} /> {selectedProspect.email}</span>}
                         {selectedProspect.website && (
                           <a
