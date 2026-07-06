@@ -6,7 +6,7 @@ import { storageService } from '../services/storage';
 import { agentService } from '../services/agent-service';
 import { accessCodeService } from '../services/access-code';
 import { AgentContextModal } from './AgentContextModal';
-import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog, Building2, Sparkles, Brain, Target, Briefcase, Menu, Network, MessageSquare } from 'lucide-react';
+import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog, Building2, Sparkles, Brain, Target, Briefcase, Menu, Network, MessageSquare, Megaphone } from 'lucide-react';
 import { AgentManagerModal } from './AgentManagerModal';
 import { ClientsPanel } from './ClientsPanel';
 import { AccessCodeModal } from './AccessCodeModal';
@@ -14,6 +14,7 @@ import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 import { LeadProspectingPanel } from './LeadProspectingPanel';
 import { ProspectsCRMPanel } from './ProspectsCRMPanel';
 import { ProjectsAdminPanel } from './ProjectsAdminPanel';
+import { AdCampaignPanel } from './AdCampaignPanel';
 
 interface DashboardProps {
   provider: Provider;
@@ -47,6 +48,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showLeadProspecting, setShowLeadProspecting] = useState(false);
   const [showProspectsCRM, setShowProspectsCRM] = useState(false);
   const [showProjectsAdmin, setShowProjectsAdmin] = useState(false);
+  const [showAdCampaign, setShowAdCampaign] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
@@ -114,6 +116,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     else if (pendingAction === 'knowledge') setShowKnowledgeBase(true);
     else if (pendingAction === 'crm') setShowProspectsCRM(true);
     else if (pendingAction === 'projects-admin') setShowProjectsAdmin(true);
+    else if (pendingAction === 'campaign') setShowAdCampaign(true);
     setPendingAction(null);
   }, [pendingAction, onProjectsClick]);
 
@@ -211,6 +214,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     >
                       <Briefcase size={16} className="text-red-400" />
                       <span>Seguimiento</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setShowMenu(false); handleRequireAccess('campaign', () => setShowAdCampaign(true)); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <Megaphone size={16} className="text-red-400" />
+                      <span>Campaña Publicitaria</span>
                     </button>
 
                     <button
@@ -393,6 +404,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
             provider={provider}
             model={model}
             onClose={() => setShowProjectsAdmin(false)}
+          />
+        )}
+
+        {/* Ad Campaign Panel */}
+        {showAdCampaign && (
+          <AdCampaignPanel
+            provider={provider}
+            model={model}
+            onClose={() => setShowAdCampaign(false)}
           />
         )}
 
