@@ -64,5 +64,47 @@ export class FreepikService {
 
     return Promise.all(promises);
   }
+
+  /**
+   * Generates a list of image assets using Pollinations.ai Free Flux API.
+   * Returns base64 string images.
+   */
+  static async generateImagesPollinations(
+    prompt: string,
+    quantity: number = 1
+  ): Promise<string[]> {
+    const promises = Array.from({ length: quantity }).map(async (_, idx) => {
+      const seed = Math.floor(Math.random() * 1000000);
+      const variations = [
+        "",
+        " detailed, commercial style",
+        " professional marketing photography",
+        " cinematic advertising lighting"
+      ];
+      
+      const modifiedPrompt = encodeURIComponent(prompt + (idx > 0 ? variations[idx % variations.length] : ""));
+      const url = `https://image.pollinations.ai/p/${modifiedPrompt}?width=1024&height=1024&model=flux&seed=${seed}`;
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Pollinations API Error: ${res.statusText} (${res.status})`);
+      }
+
+      // Convert image blob to base64
+      const blob = await res.blob();
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          const base64 = result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    });
+
+    return Promise.all(promises);
+  }
 }
 export default FreepikService;

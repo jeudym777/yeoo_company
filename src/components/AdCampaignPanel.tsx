@@ -53,6 +53,7 @@ export const AdCampaignPanel: React.FC<AdCampaignPanelProps> = ({
   const [selectedCampaign, setSelectedCampaign] = useState<CampanaPublicitaria | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [imageQuantity, setImageQuantity] = useState<number>(1);
+  const [imageEngine, setImageEngine] = useState<'flux' | 'freepik'>('flux');
   const [activeTab, setActiveTab] = useState<'creative' | 'assets'>('creative');
 
   useEffect(() => {
@@ -162,8 +163,8 @@ Do NOT include markdown code ticks (\`\`\`json) and no conversational text. Retu
     }
   };
 
-  // Generate image using Freepik Service
-  const handleGenerateImagesFreepik = async () => {
+  // Generate image using Freepik or Pollinations Flux
+  const handleGenerateImages = async () => {
     if (!selectedCampaign || !selectedCampaign.image_prompt.trim()) {
       alert('Debes tener un prompt visual listo.');
       return;
@@ -171,11 +172,19 @@ Do NOT include markdown code ticks (\`\`\`json) and no conversational text. Retu
 
     setGeneratingImages(true);
     try {
-      const base64List = await FreepikService.generateImages(
-        selectedCampaign.image_prompt.trim(),
-        selectedCampaign.image_style,
-        imageQuantity
-      );
+      let base64List: string[];
+      if (imageEngine === 'flux') {
+        base64List = await FreepikService.generateImagesPollinations(
+          selectedCampaign.image_prompt.trim(),
+          imageQuantity
+        );
+      } else {
+        base64List = await FreepikService.generateImages(
+          selectedCampaign.image_prompt.trim(),
+          selectedCampaign.image_style,
+          imageQuantity
+        );
+      }
 
       // Append new generated images to existing ones in the campaign
       const updatedImages = [...selectedCampaign.images_json, ...base64List];
@@ -193,7 +202,7 @@ Do NOT include markdown code ticks (\`\`\`json) and no conversational text. Retu
       alert(`¡Generación exitosa! Se han añadido ${base64List.length} imágenes a la campaña.`);
     } catch (err: any) {
       console.error(err);
-      alert(`Error en la API de Freepik: ${err.message || err}. Revisa tu conexión o créditos.`);
+      alert(`Error en la generación de imágenes: ${err.message || err}. Revisa tu conexión o créditos.`);
     } finally {
       setGeneratingImages(false);
     }
@@ -494,22 +503,32 @@ Do NOT include markdown code ticks (\`\`\`json) and no conversational text. Retu
                             </div>
                             <p className="text-xs text-gray-300 whitespace-pre-wrap leading-relaxed min-h-[25vh]">
                               {selectedCampaign.ad_copy || 'Presiona el botón de arriba "Estructurar Copy con IA" para que el agente redacte los textos comerciales de la campaña.'}
-                            </p>
-                          </div>
-
-                          {/* Image Prompt Generation & Trigger */}
+                                                    {/* Image Prompt Generation & Trigger */}
                           <div className="bg-[#111622]/40 border border-gray-850 p-4 rounded-xl space-y-4">
                             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1 border-b border-gray-800 pb-1.5">
-                              <Palette size={12} /> Generar Imagen con Freepik
+                              <Palette size={12} /> Generar Imagen Publicitaria
                             </h4>
 
+                            {/* Generator Engine Selector */}
                             <div className="space-y-1">
-                              <label className="text-[9px] text-gray-500 uppercase">Prompt Visual para Freepik (Inglés)</label>
+                              <label className="text-[9px] text-gray-500 uppercase font-semibold">Motor de Generación</label>
+                              <select
+                                value={imageEngine}
+                                onChange={(e) => setImageEngine(e.target.value as any)}
+                                className="w-full bg-[#070A0F] border border-gray-800 rounded-lg p-1.5 text-[10px] text-white focus:outline-none"
+                              >
+                                <option value="flux">Flux (Gratuito y Libre)</option>
+                                <option value="freepik">Freepik (Pago - Requiere Clave .env)</option>
+                              </select>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[9px] text-gray-500 uppercase font-semibold">Prompt Visual (Inglés)</label>
                               <textarea
                                 value={selectedCampaign.image_prompt}
                                 onChange={(e) => setSelectedCampaign({ ...selectedCampaign, image_prompt: e.target.value })}
                                 placeholder="Escribe el prompt visual o dejaselo estructurar al agente..."
-                                rows={4}
+                                rows={3}
                                 className="w-full bg-[#070A0F] border border-gray-800 rounded-lg p-2 text-[10px] text-gray-300 focus:outline-none resize-none leading-relaxed"
                               />
                             </div>
@@ -517,7 +536,7 @@ Do NOT include markdown code ticks (\`\`\`json) and no conversational text. Retu
                             <div className="grid grid-cols-2 gap-2">
                               {/* Quantity Selector */}
                               <div className="space-y-1">
-                                <label className="text-[9px] text-gray-500 uppercase">Piezas a Generar</label>
+                                <label className="text-[9px] text-gray-500 uppercase font-semibold">Piezas a Generar</label>
                                 <select
                                   value={imageQuantity}
                                   onChange={(e) => setImageQuantity(parseInt(e.target.value))}
@@ -530,13 +549,14 @@ Do NOT include markdown code ticks (\`\`\`json) and no conversational text. Retu
                                 </select>
                               </div>
 
-                              {/* Style */}
+                              {/* Style (only enabled if freepik is selected) */}
                               <div className="space-y-1">
-                                <label className="text-[9px] text-gray-500 uppercase">Estilo de Imagen</label>
+                                <label className="text-[9px] text-gray-500 uppercase font-semibold">Estilo (Freepik)</label>
                                 <select
                                   value={selectedCampaign.image_style}
                                   onChange={(e) => setSelectedCampaign({ ...selectedCampaign, image_style: e.target.value })}
-                                  className="w-full bg-[#070A0F] border border-gray-800 rounded-lg p-1.5 text-[10px] text-white focus:outline-none"
+                                  disabled={imageEngine === 'flux'}
+                                  className="w-full bg-[#070A0F] border border-gray-800 rounded-lg p-1.5 text-[10px] text-white focus:outline-none disabled:opacity-40"
                                 >
                                   {ESTILOS_FREEPIK.map(es => (
                                     <option key={es.key} value={es.key}>{es.label}</option>
@@ -546,14 +566,14 @@ Do NOT include markdown code ticks (\`\`\`json) and no conversational text. Retu
                             </div>
 
                             <button
-                              onClick={handleGenerateImagesFreepik}
+                              onClick={handleGenerateImages}
                               disabled={generatingImages || !selectedCampaign.image_prompt.trim()}
                               className="w-full bg-gradient-to-r from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 text-white font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all text-xs disabled:opacity-50 cursor-pointer shadow-md shadow-green-950/20"
                             >
                               {generatingImages ? (
                                 <>
                                   <Loader2 size={14} className="animate-spin" />
-                                  Conectando con Freepik API...
+                                  Generando con {imageEngine === 'flux' ? 'Flux' : 'Freepik'}...
                                 </>
                               ) : (
                                 <>
