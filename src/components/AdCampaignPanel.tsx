@@ -503,7 +503,10 @@ Do NOT include markdown code ticks (\`\`\`json) and no conversational text. Retu
                             </div>
                             <p className="text-xs text-gray-300 whitespace-pre-wrap leading-relaxed min-h-[25vh]">
                               {selectedCampaign.ad_copy || 'Presiona el botón de arriba "Estructurar Copy con IA" para que el agente redacte los textos comerciales de la campaña.'}
-                                                    {/* Image Prompt Generation & Trigger */}
+                            </p>
+                          </div>
+
+                          {/* Image Prompt Generation & Trigger */}
                           <div className="bg-[#111622]/40 border border-gray-850 p-4 rounded-xl space-y-4">
                             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1 border-b border-gray-800 pb-1.5">
                               <Palette size={12} /> Generar Imagen Publicitaria
