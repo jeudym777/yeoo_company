@@ -6,12 +6,14 @@ import { storageService } from '../services/storage';
 import { agentService } from '../services/agent-service';
 import { accessCodeService } from '../services/access-code';
 import { AgentContextModal } from './AgentContextModal';
-import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog, Building2, Sparkles } from 'lucide-react';
+import { Search, Filter, Users, ArrowRight, Check, FolderOpen, Settings2, Loader2, UserCog, Building2, Sparkles, Brain, Target, Briefcase, Menu, Network, MessageSquare } from 'lucide-react';
 import { AgentManagerModal } from './AgentManagerModal';
 import { ClientsPanel } from './ClientsPanel';
 import { AccessCodeModal } from './AccessCodeModal';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 import { LeadProspectingPanel } from './LeadProspectingPanel';
+import { ProspectsCRMPanel } from './ProspectsCRMPanel';
+import { ProjectsAdminPanel } from './ProjectsAdminPanel';
 
 interface DashboardProps {
   provider: Provider;
@@ -43,6 +45,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showAccessModal, setShowAccessModal] = useState(false);
   const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
   const [showLeadProspecting, setShowLeadProspecting] = useState(false);
+  const [showProspectsCRM, setShowProspectsCRM] = useState(false);
+  const [showProjectsAdmin, setShowProjectsAdmin] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   // Load agents from Supabase (with fallback to agents_yeoo.ts)
@@ -107,6 +112,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     else if (pendingAction === 'projects') onProjectsClick();
     else if (pendingAction === 'leads') setShowLeadProspecting(true);
     else if (pendingAction === 'knowledge') setShowKnowledgeBase(true);
+    else if (pendingAction === 'crm') setShowProspectsCRM(true);
+    else if (pendingAction === 'projects-admin') setShowProjectsAdmin(true);
     setPendingAction(null);
   }, [pendingAction, onProjectsClick]);
 
@@ -134,53 +141,99 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => handleRequireAccess('knowledge', () => setShowKnowledgeBase(true))}
-              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-300 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] hover:text-white transition-all text-sm font-medium animate-fade-in"
-            >
-              🧠 Cerebro RAG
-            </button>
-            <button
-              onClick={() => handleRequireAccess('leads', () => setShowLeadProspecting(true))}
-              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-300 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] hover:text-white transition-all text-sm font-medium animate-fade-in"
-            >
-              🎯 Prospección
-            </button>
-            <button
-              onClick={onOrgBuilderClick}
-              className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-800 text-white px-4 py-2 rounded-xl hover:from-red-500 hover:to-red-700 transition-all text-sm font-semibold shadow-md shadow-red-950/20"
-            >
-              <Sparkles size={16} />
-              AI Org Builder
-            </button>
-            <button
-              onClick={() => handleRequireAccess('clients', () => setShowClients(true))}
-              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
-            >
-              <Building2 size={16} />
-              Clients
-            </button>
-            <button
-              onClick={() => handleRequireAccess('agents', () => { agentService.clearCache(); setShowAgentManager(true); })}
-              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
-            >
-              <UserCog size={16} />
-              Agents
-            </button>
-            <button
-              onClick={() => handleRequireAccess('projects', () => onProjectsClick())}
-              className="flex items-center gap-2 bg-[#1A1F2E] text-gray-400 border border-[#2D3548] px-4 py-2 rounded-xl hover:bg-[#2D3548] transition-all text-sm"
-            >
-              <FolderOpen size={16} />
-              Projects
-            </button>
+          <div className="flex items-center gap-4">
             <button
               onClick={onChangeConfig}
-              className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+              className="text-xs text-gray-500 hover:text-gray-300 transition-colors hidden md:block"
             >
-              {provider === 'deepseek' ? '☁️ DeepSeek' : provider === 'groq' ? '⚡ Groq' : provider === 'gemini' ? '🌐 Gemini' : '🖥️ Ollama'} · {model} — Change
+              {provider === 'deepseek' ? 'DeepSeek' : provider === 'groq' ? 'Groq' : provider === 'gemini' ? 'Gemini' : 'Ollama'} · {model} (cambiar)
             </button>
+
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="flex items-center gap-2 bg-[#1A1F2E] text-gray-300 border border-[#2D3548] p-2.5 rounded-xl hover:bg-[#2D3548] hover:text-white transition-all text-sm font-medium"
+                title="Menú de Funciones"
+              >
+                <Menu size={20} />
+              </button>
+
+              {showMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-45" 
+                    onClick={() => setShowMenu(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-64 bg-[#0F1322] border border-[#2D3548] rounded-xl shadow-2xl z-50 overflow-hidden py-1.5 animate-fade-in">
+                    <button
+                      onClick={() => { setShowMenu(false); handleRequireAccess('projects-admin', () => setShowProjectsAdmin(true)); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <FolderOpen size={16} className="text-red-400" />
+                      <span>Projects</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setShowMenu(false); handleRequireAccess('agents', () => { agentService.clearCache(); setShowAgentManager(true); }); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <UserCog size={16} className="text-red-400" />
+                      <span>Agents</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setShowMenu(false); handleRequireAccess('clients', () => setShowClients(true)); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <Building2 size={16} className="text-red-400" />
+                      <span>Clients</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setShowMenu(false); handleRequireAccess('knowledge', () => setShowKnowledgeBase(true)); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <Brain size={16} className="text-red-400" />
+                      <span>Cerebro RAG</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setShowMenu(false); handleRequireAccess('leads', () => setShowLeadProspecting(true)); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <Target size={16} className="text-red-400" />
+                      <span>Prospección</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setShowMenu(false); handleRequireAccess('crm', () => setShowProspectsCRM(true)); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <Briefcase size={16} className="text-red-400" />
+                      <span>Seguimiento</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setShowMenu(false); onOrgBuilderClick(); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <Network size={16} className="text-red-400" />
+                      <span>AI ORG Builder</span>
+                    </button>
+
+                    <div className="border-t border-gray-800 my-1" />
+
+                    <button
+                      onClick={() => { setShowMenu(false); handleRequireAccess('projects', () => onProjectsClick()); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1A1F2E]/60 hover:text-white transition-all text-left"
+                    >
+                      <MessageSquare size={16} className="text-red-400" />
+                      <span>Historial de Chats</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -326,6 +379,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
             provider={provider}
             model={model}
             onClose={() => setShowLeadProspecting(false)}
+          />
+        )}
+
+        {/* Prospects CRM Panel */}
+        {showProspectsCRM && (
+          <ProspectsCRMPanel onClose={() => setShowProspectsCRM(false)} />
+        )}
+
+        {/* Projects Administration Panel */}
+        {showProjectsAdmin && (
+          <ProjectsAdminPanel
+            provider={provider}
+            model={model}
+            onClose={() => setShowProjectsAdmin(false)}
           />
         )}
 

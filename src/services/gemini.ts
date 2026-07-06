@@ -8,6 +8,7 @@ export interface GenerateOptions {
   stream?: boolean;
   temperature?: number;
   top_p?: number;
+  enableSearch?: boolean;
 }
 
 class GeminiService {
@@ -29,6 +30,10 @@ class GeminiService {
         maxOutputTokens: 4096,
       },
     };
+
+    if (options.enableSearch) {
+      payload.tools = [{ google_search: {} }];
+    }
 
     if (options.system) {
       payload.systemInstruction = { parts: [{ text: options.system }] };

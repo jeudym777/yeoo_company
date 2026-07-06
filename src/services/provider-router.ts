@@ -10,6 +10,7 @@ interface GenerateOptions {
   temperature?: number;
   top_p?: number;
   max_tokens?: number;
+  enableSearch?: boolean;
 }
 
 /**
@@ -20,7 +21,7 @@ export async function generateWithProvider(
   provider: Provider,
   options: GenerateOptions
 ): Promise<string> {
-  const { model, prompt, system, temperature } = options;
+  const { model, prompt, system, temperature, enableSearch } = options;
 
   switch (provider) {
     case 'ollama':
@@ -36,7 +37,7 @@ export async function generateWithProvider(
 
     case 'gemini': {
       const { default: GeminiService } = await import('./gemini');
-      return await GeminiService.generate({ model, prompt, system, temperature });
+      return await GeminiService.generate({ model, prompt, system, temperature, enableSearch });
     }
 
     default:

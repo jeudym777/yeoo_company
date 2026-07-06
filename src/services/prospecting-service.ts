@@ -55,20 +55,41 @@ JSON Schema:
     try {
       const prompt = this.buildProspectingPrompt(industry, location);
 
-      const response = await generateWithProvider(provider, {
-        model,
-        prompt,
-        temperature: 0.8,
-      });
+      let response: string;
+      try {
+        response = await generateWithProvider(provider, {
+          model,
+          prompt,
+          temperature: 0.8,
+          enableSearch: provider === 'gemini',
+        });
+      } catch (searchError) {
+        console.warn('Google Search Grounding está deshabilitada o limitada en tu clave API gratuita. Reintentando en modo simulado...', searchError);
+        // Fallback to normal generation (without Google Search) which is free and unlimited
+        response = await generateWithProvider(provider, {
+          model,
+          prompt,
+          temperature: 0.8,
+          enableSearch: false,
+        });
+      }
 
       // Clean the response
       let jsonStr = response.trim();
-      if (jsonStr.startsWith('```')) {
+      const startIdx = jsonStr.indexOf('[');
+      const endIdx = jsonStr.lastIndexOf(']');
+
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        jsonStr = jsonStr.substring(startIdx, endIdx + 1);
+      } else if (jsonStr.startsWith('```')) {
         jsonStr = jsonStr.replace(/^```(?:json)?\s*\n/, '').replace(/\n```\s*$/, '');
       }
 
+      console.log('Raw search prospecting response:', response);
+      console.log('Extracted JSON string:', jsonStr);
+
       const rawLeads = JSON.parse(jsonStr);
-      if (!Array.isArray(rawLeads)) throw new Error('Response is not a JSON array');
+      if (!Array.isArray(rawLeads)) throw new Error('La respuesta de la IA no es un array JSON válido.');
 
       return rawLeads.map((item: any, idx: number) => ({
         id: `lead-tmp-${Date.now()}-${idx}`,
@@ -83,9 +104,9 @@ JSON Schema:
         draft_proposal: item.draft_proposal || '',
         status: 'new' as const,
       }));
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error in lead prospecting:', e);
-      throw new Error('Failed to parse lead prospecting results. Try again.');
+      throw new Error(`Error de prospección: ${e.message || e}. Revisa la consola del navegador.`);
     }
   }
 

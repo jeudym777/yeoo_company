@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ragService, type CompanyKnowledge } from '../services/rag-service';
-import { X, BookOpen, Plus, Trash2, Loader2, Save, FileText, Tag, Database, Sparkles } from 'lucide-react';
+import { X, BookOpen, Plus, Trash2, Loader2, Save, FileText, Tag, Database, Sparkles, Brain } from 'lucide-react';
 
 interface KnowledgeBasePanelProps {
   onClose: () => void;
@@ -80,8 +80,8 @@ export const KnowledgeBasePanel: React.FC<KnowledgeBasePanelProps> = ({ onClose 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-950 flex items-center justify-center text-xl">
-              🧠
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-950 flex items-center justify-center">
+              <Brain size={20} className="text-white" />
             </div>
             <div>
               <h2 className="text-xl font-bold">Cerebro RAG Corporativo</h2>
